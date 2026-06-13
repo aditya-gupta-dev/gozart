@@ -1,0 +1,16 @@
+services:
+  gozart:
+    build: .
+    image: gozart:latest
+    container_name: gozart
+    volumes:
+      - ./config.json:/workspace/config.json:ro
+      - ./client_secrets.json:/workspace/client_secrets.json:ro
+      - ./links.txt:/workspace/links.txt:ro
+      - ./sample.mp4:/workspace/sample.mp4:ro
+      - ./output:/workspace/output
+      - ./files:/workspace/files
+      - ./token.json:/workspace/token.json
+    working_dir: /workspace
+    stdin_open: true
+    tty: true

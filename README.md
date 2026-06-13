@@ -12,6 +12,8 @@ Gozart is a high-performance CLI tool for automating YouTube Shorts creation. It
 - [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
+  - [Native Installation](#native-installation)
+  - [Docker Installation](#docker-installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
   - [Process Command](#process-command)
@@ -81,12 +83,21 @@ Gozart is a high-performance CLI tool for automating YouTube Shorts creation. It
 
 ### Required Tools
 
+#### For Native Installation
+
 - **Go** 1.26.1+ (for building from source)
 - **ffmpeg** — Video/audio processing
 - **ffprobe** — Media duration calculation
 - **yt-dlp** — YouTube video downloader
 
+#### For Docker Installation
+
+- **Docker** — Container runtime
+- **Docker Compose** (optional) — For easier orchestration
+
 ### Installation Commands
+
+#### Native Setup
 
 ```bash
 # Ubuntu/Debian
@@ -98,6 +109,19 @@ brew install ffmpeg yt-dlp
 
 # Windows (Chocolatey)
 choco install ffmpeg yt-dlp
+```
+
+#### Docker Setup
+
+```bash
+# Ubuntu/Debian
+sudo apt update
+sudo apt install docker.io docker-compose
+sudo systemctl start docker
+sudo usermod -aG docker $USER
+
+# macOS/Windows
+# Install Docker Desktop from https://www.docker.com/products/docker-desktop
 ```
 
 ### YouTube API Setup
@@ -113,7 +137,9 @@ choco install ffmpeg yt-dlp
 
 ## Installation
 
-### Option 1: Build from Source
+### Native Installation
+
+#### Option 1: Build from Source
 
 ```bash
 git clone <repository-url>
@@ -122,11 +148,46 @@ go build -o gozart
 chmod +x gozart
 ```
 
-### Option 2: Direct Execution
+#### Option 2: Direct Execution
 
 ```bash
 go run main.go [command] [flags]
 ```
+
+---
+
+### Docker Installation
+
+#### Option 1: Docker Build
+
+```bash
+# Build the image
+docker build -t gozart .
+
+# Run commands
+docker run -v $(pwd)/config.json:/workspace/config.json:ro \
+           -v $(pwd)/client_secrets.json:/workspace/client_secrets.json:ro \
+           -v $(pwd)/links.txt:/workspace/links.txt:ro \
+           -v $(pwd)/sample.mp4:/workspace/sample.mp4:ro \
+           -v $(pwd)/output:/workspace/output \
+           -v $(pwd)/files:/workspace/files \
+           -v $(pwd)/token.json:/workspace/token.json \
+           -it gozart process --upload -c 5
+```
+
+#### Option 2: Docker Compose (Recommended)
+
+```bash
+# Build and run with docker-compose
+docker-compose build
+
+# Run commands
+docker-compose run gozart process --upload -c 5
+docker-compose run gozart randomize --mode few
+docker-compose run gozart clean
+```
+
+**Note**: For OAuth authentication in Docker, you need `-it` flags (interactive mode) to enter the authorization code.
 
 ---
 
@@ -283,6 +344,9 @@ gozart/
 ├── main.go                 # Application entry point
 ├── go.mod                  # Go module dependencies
 ├── go.sum                  # Dependency checksums
+├── Dockerfile              # Docker container definition
+├── docker-compose.yml      # Docker Compose orchestration
+├── .dockerignore           # Docker build exclusions
 ├── config.json            # Configuration file (create this)
 ├── client_secrets.json    # OAuth2 credentials (create this)
 ├── links.txt              # YouTube URLs to process (create this)

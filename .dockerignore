@@ -1,0 +1,23 @@
+# Binaries
+gozart
+
+# Directories
+files/
+output/
+
+# Logs
+*.log
+
+# Secrets and config (should be mounted at runtime)
+config.json
+client_secrets.json
+token.json
+links.txt
+sample.mp4
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
