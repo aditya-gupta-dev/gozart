@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 
-	"github.com/schollz/progressbar/v3"
+	"github.com/vbauerster/mpb/v8"
+	"github.com/vbauerster/mpb/v8/decor"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -18,19 +20,27 @@ import (
 )
 
 type YouTubeUploader struct {
-	logger           *logger.Logger
-	configLoader     *config.ConfigLoader
-	clientSecretFile string
-	tokenFile        string
-	Service          *youtube.Service
+	logger            *logger.Logger
+	configLoader      *config.ConfigLoader
+	clientSecretFile  string
+	tokenFile         string
+	Service           *youtube.Service
+	ProgressContainer *mpb.Progress
 }
 
 func New(l *logger.Logger, cfg *config.ConfigLoader) *YouTubeUploader {
 	return &YouTubeUploader{
-		logger:           l,
-		configLoader:     cfg,
-		clientSecretFile: "client_secrets.json",
-		tokenFile:        "token.json",
+		logger:            l,
+		configLoader:      cfg,
+		clientSecretFile:  "client_secrets.json",
+		tokenFile:         "token.json",
+		ProgressContainer: mpb.New(mpb.WithWidth(60)),
+	}
+}
+
+func (u *YouTubeUploader) Wait() {
+	if u.ProgressContainer != nil {
+		u.ProgressContainer.Wait()
 	}
 }
 
@@ -68,16 +78,46 @@ func getClient(config *oauth2.Config, tokenFile string, l *logger.Logger) *http.
 }
 
 func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
-	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
-	fmt.Printf("Go to the following link in your browser then type the authorization code: \n%v\n", authURL)
+	listener, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		fmt.Printf("Unable to start local server: %v\n", err)
+		os.Exit(1)
+	}
+	port := listener.Addr().(*net.TCPAddr).Port
 
-	var authCode string
-	if _, err := fmt.Scan(&authCode); err != nil {
-		fmt.Printf("Unable to read authorization code: %v\n", err)
+	config.RedirectURL = fmt.Sprintf("http://localhost:%d", port)
+	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
+	fmt.Printf("Go to the following link in your browser to authorize the application: \n%v\n", authURL)
+
+	ch := make(chan string)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		code := r.URL.Query().Get("code")
+		if code != "" {
+			fmt.Fprintf(w, "Authentication successful! You can close this window.")
+			ch <- code
+		} else {
+			fmt.Fprintf(w, "Authentication failed. No code found.")
+			ch <- ""
+		}
+	})
+
+	srv := &http.Server{Handler: mux}
+	go func() {
+		if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
+			fmt.Printf("HTTP server error: %v\n", err)
+		}
+	}()
+
+	authCode := <-ch
+	srv.Shutdown(context.Background())
+
+	if authCode == "" {
+		fmt.Println("Unable to read authorization code")
 		os.Exit(1)
 	}
 
-	tok, err := config.Exchange(context.TODO(), authCode)
+	tok, err := config.Exchange(context.Background(), authCode)
 	if err != nil {
 		fmt.Printf("Unable to retrieve token from web: %v\n", err)
 		os.Exit(1)
@@ -106,17 +146,7 @@ func saveToken(path string, token *oauth2.Token, l *logger.Logger) {
 	json.NewEncoder(f).Encode(token)
 }
 
-// ProgressReader wraps a file to track upload progress
-type ProgressReader struct {
-	file *os.File
-	bar  *progressbar.ProgressBar
-}
 
-func (pr *ProgressReader) Read(p []byte) (int, error) {
-	n, err := pr.file.Read(p)
-	pr.bar.Add(n)
-	return n, err
-}
 
 func (u *YouTubeUploader) UploadVideo(videoFile, title, description string, tags []string) string {
 	if u.Service == nil {
@@ -148,15 +178,20 @@ func (u *YouTubeUploader) UploadVideo(videoFile, title, description string, tags
 
 	call := u.Service.Videos.Insert([]string{"snippet", "status"}, upload)
 	
-	bar := progressbar.DefaultBytes(stat.Size(), "Uploading")
-	
-	// Create a reader that updates the progress bar
-	progressReader := &ProgressReader{
-		file: file,
-		bar:  bar,
-	}
+	bar := u.ProgressContainer.AddBar(stat.Size(),
+		mpb.PrependDecorators(
+			decor.Name(title, decor.WCSyncSpaceR),
+			decor.CountersKibiByte("% .2f / % .2f", decor.WCSyncSpace),
+		),
+		mpb.AppendDecorators(
+			decor.Percentage(decor.WCSyncSpace),
+		),
+	)
 
-	response, err := call.Media(progressReader).Do()
+	proxyReader := bar.ProxyReader(file)
+	defer proxyReader.Close()
+
+	response, err := call.Media(proxyReader).Do()
 	if err != nil {
 		u.logger.LogFileWithStdout("Error making YouTube API call: "+err.Error(), logger.Error)
 		return ""

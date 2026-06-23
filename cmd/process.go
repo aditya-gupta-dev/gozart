@@ -76,6 +76,9 @@ var processCmd = &cobra.Command{
 		}
 
 		wg.Wait()
+		if uploadFlag && ytUploader != nil {
+			ytUploader.Wait()
+		}
 		l.LogFileWithStdout("All processing completed.", logger.Info)
 	},
 }

@@ -1,0 +1,7 @@
+gozart
+*.json
+*.log
+*.txt
+*.mp4 
+files/
+output/
