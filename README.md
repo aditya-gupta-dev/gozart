@@ -9,7 +9,6 @@ Gozart is a high-performance CLI tool for automating YouTube Shorts creation. It
 ## Table of Contents
 
 - [Features](#features)
-- [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
   - [Native Installation](#native-installation)
@@ -40,31 +39,6 @@ Gozart is a high-performance CLI tool for automating YouTube Shorts creation. It
 - **OAuth2 Authentication**: Secure YouTube API access with token persistence
 
 ---
-
-## Architecture
-
-```
-┌─────────────┐
-│   CLI       │
-│  (Cobra)    │
-└──────┬──────┘
-       │
-       ├───► process    (Download → Edit → Upload)
-       ├───► randomize  (Random selection processor)
-       └───► clean      (Cleanup artifacts)
-              │
-    ┌─────────┴─────────┐
-    │                   │
-┌───▼─────┐      ┌──────▼──────┐
-│Downloader│      │   Editor    │
-│ (yt-dlp) │      │  (ffmpeg)   │
-└──────────┘      └──────┬──────┘
-                         │
-                  ┌──────▼──────┐
-                  │  Uploader   │
-                  │ (YouTube v3)│
-                  └─────────────┘
-```
 
 ### Package Overview
 

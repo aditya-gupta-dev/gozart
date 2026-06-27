@@ -78,14 +78,20 @@ func getClient(config *oauth2.Config, tokenFile string, l *logger.Logger) *http.
 }
 
 func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
-	listener, err := net.Listen("tcp", "localhost:0")
+	// Bind the loopback IP literally rather than the hostname "localhost".
+	// "localhost" resolves to both 127.0.0.1 and ::1, and Go listens on only
+	// one of them; the browser may then try the other family and get a
+	// connection refused ("cannot access localhost"). Google also recommends
+	// 127.0.0.1 over localhost for loopback redirect URIs.
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		fmt.Printf("Unable to start local server: %v\n", err)
 		os.Exit(1)
 	}
-	port := listener.Addr().(*net.TCPAddr).Port
 
-	config.RedirectURL = fmt.Sprintf("http://localhost:%d", port)
+	// Derive the redirect URL from the actual bound address so the host:port
+	// the browser is sent to always matches what we're listening on.
+	config.RedirectURL = fmt.Sprintf("http://%s", listener.Addr().String())
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 	fmt.Printf("Go to the following link in your browser to authorize the application: \n%v\n", authURL)
 
