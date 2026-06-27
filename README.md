@@ -177,7 +177,9 @@ Create a `config.json` file in your working directory:
   "youtube-api-key": "YOUR_YOUTUBE_API_KEY_HERE",
   "asset-video-path": "sample.mp4",
   "output-directory": "output",
-  "links-file-path": "links.txt"
+  "links-file-path": "links.txt",
+  "description-file-path": "description.txt",
+  "tags-file-path": "tags.txt"
 }
 ```
 
@@ -192,12 +194,51 @@ Create a `config.json` file in your working directory:
 | `asset-video-path` | string | Background video to merge with audio | `sample.mp4` |
 | `output-directory` | string | Final render output location | `output` |
 | `links-file-path` | string | File containing YouTube URLs (one per line) | `links.txt` |
+| `description-file-path` | string | Path to a text file whose contents are used as the video description | *empty* (uses built-in default) |
+| `tags-file-path` | string | Path to a text file containing tags (comma or newline separated) | *empty* (uses `shorts, music, looped`) |
 
 ### Additional Required Files
 
 - **`client_secrets.json`** — OAuth2 credentials from Google Cloud Console
 - **`links.txt`** — YouTube video URLs (one per line)
 - **`sample.mp4`** — Asset video for visual background
+
+### Optional: Custom Description & Tags Files
+
+You can provide external text files for the YouTube video **description** and **tags** that will be applied to every upload.
+
+#### Description File
+
+A plain-text file whose entire content is used as the video description.
+
+```text
+🎵 Looped & extended version — enjoy!
+Subscribe for more music mixes.
+```
+
+Set the path in `config.json`:
+
+```json
+"description-file-path": "description.txt"
+```
+
+#### Tags File
+
+A text file with tags separated by **commas** and/or **newlines**:
+
+```text
+shorts, music, looped
+relaxing, study music
+chill beats
+```
+
+Set the path in `config.json`:
+
+```json
+"tags-file-path": "tags.txt"
+```
+
+> **Note**: Both fields are optional. When a path is empty or the file cannot be read, Gozart falls back to sensible defaults.
 
 ---
 
