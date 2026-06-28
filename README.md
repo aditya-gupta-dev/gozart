@@ -435,7 +435,7 @@ Generated during execution:
    ├─ Fetch video title via YouTube API
    ├─ Generate sanitized filename
    ├─ Upload video with metadata
-   ├─ Set privacy to "private"
+   ├─ Set privacy to "public"
    └─ Upload thumbnail
 ```
 

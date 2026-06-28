@@ -179,7 +179,7 @@ func (u *YouTubeUploader) UploadVideo(videoFile, title, description string, tags
 			Tags:        tags,
 			CategoryId:  "22", // People & Blogs
 		},
-		Status: &youtube.VideoStatus{PrivacyStatus: "private"},
+		Status: &youtube.VideoStatus{PrivacyStatus: "public"},
 	}
 
 	call := u.Service.Videos.Insert([]string{"snippet", "status"}, upload)
