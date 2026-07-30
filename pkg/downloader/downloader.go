@@ -72,11 +72,18 @@ func (d *VideoDownloader) DownloadVideoUsingPkg(link string) string {
 	altPath := d.tempDir + "/" + videoID + "/input.mp4"
 
 	if _, err := os.Stat(savePath); err == nil {
-		d.logger.LogFileWithStdout("downloaded video is already present. Skipping Downloading...", logger.Info)
+		d.logger.LogFileWithStdout("downloaded video is already present in files. Skipping Downloading...", logger.Info)
 		return videoID
 	}
 	if _, err := os.Stat(altPath); err == nil {
-		d.logger.LogFileWithStdout("downloaded video is already present. Skipping Downloading...", logger.Info)
+		d.logger.LogFileWithStdout("downloaded video is already present in files. Skipping Downloading...", logger.Info)
+		return videoID
+	}
+
+	cacheDir := ".cache/gozart/" + videoID
+	if _, err := os.Stat(cacheDir); err == nil {
+		d.logger.LogFileWithStdout("downloaded video found in cache. Copying to files...", logger.Info)
+		exec.Command("cp", "-r", cacheDir, d.tempDir).Run()
 		return videoID
 	}
 
@@ -87,6 +94,11 @@ func (d *VideoDownloader) DownloadVideoUsingPkg(link string) string {
 		d.logger.LogFileWithStdout("Failed to download the video "+link, logger.Error)
 		return ""
 	}
+
+	d.logger.LogFileWithStdout("Copying downloaded video to cache...", logger.Info)
+	os.MkdirAll(".cache/gozart", 0755)
+	tempDirID := d.tempDir + "/" + videoID
+	exec.Command("cp", "-r", tempDirID, ".cache/gozart/").Run()
 
 	d.logger.LogFileWithStdout("Completed Downloading "+link, logger.Info)
 	return videoID

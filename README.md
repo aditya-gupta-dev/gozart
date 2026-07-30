@@ -329,6 +329,7 @@ Remove generated files and artifacts.
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--reset` | bool | `false` | Also delete asset video and clear links.txt |
+| `--deep` | bool | `false` | Clean the `.cache/gozart/` directory |
 
 #### Cleanup Targets
 
@@ -339,6 +340,7 @@ Remove generated files and artifacts.
 | `*.log` | All log files in current directory |
 | `sample.mp4` (with --reset) | Asset video |
 | `links.txt` (with --reset) | Emptied but not deleted |
+| `.cache/gozart/` (with --deep) | Cached downloaded assets |
 
 #### Examples
 
@@ -348,6 +350,9 @@ Remove generated files and artifacts.
 
 # Full reset (removes asset and clears links)
 ./gozart clean --reset
+
+# Deep clean (removes cache directory)
+./gozart clean --deep
 ```
 
 ---

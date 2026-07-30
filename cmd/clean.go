@@ -11,6 +11,7 @@ import (
 )
 
 var resetFlag bool
+var deepFlag bool
 
 var cleanCmd = &cobra.Command{
 	Use:   "clean",
@@ -39,6 +40,12 @@ var cleanCmd = &cobra.Command{
 			l.LogFileWithStdout("Removed files folder", logger.Info)
 		}
 
+		if deepFlag {
+			if err := os.RemoveAll(".cache/gozart"); err == nil {
+				l.LogFileWithStdout("Removed cache folder", logger.Info)
+			}
+		}
+
 		entries, _ := os.ReadDir(".")
 		count := 0
 		for _, entry := range entries {
@@ -55,4 +62,5 @@ var cleanCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(cleanCmd)
 	cleanCmd.Flags().BoolVar(&resetFlag, "reset", false, "Reset asset video and links file")
+	cleanCmd.Flags().BoolVar(&deepFlag, "deep", false, "Clean the cache directory (.cache/gozart)")
 }
