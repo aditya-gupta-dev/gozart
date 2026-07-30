@@ -9,8 +9,12 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "gozart",
 	Short: "Gozart is a tool for rendering and uploading looped videos",
-	Long: `Gozart automates the downloading, processing, and uploading of YouTube videos.
-It fetches videos, extracts audio, merges with an asset video, loops it, and uploads it.`,
+	Long: `Gozarts automates the downloading, processing, and uploading of YouTube videos.
+It fetches videos, extracts audio, merges with an asset video, loops it, and uploads it.
+
+Created by Aditya Gupta
+Website: https://ctoadi.web.app/
+GitHub: https://github.com/aditya-gupta-dev/gozart.git`,
 }
 
 func Execute() {
