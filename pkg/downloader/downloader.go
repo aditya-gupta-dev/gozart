@@ -51,7 +51,7 @@ func (d *VideoDownloader) GetLinksFromFile() []string {
 
 	re := regexp.MustCompile(`\r?\n`)
 	lines := re.Split(string(content), -1)
-	
+
 	var links []string
 	for _, line := range lines {
 		if line != "" {
@@ -80,7 +80,13 @@ func (d *VideoDownloader) DownloadVideoUsingPkg(link string) string {
 		return videoID
 	}
 
-	cacheDir := ".cache/gozart/" + videoID
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		d.logger.LogFileWithStdout("failed to get home directory for user.", logger.Fatal)
+		return videoID
+	}
+
+	cacheDir := homeDir + ".cache/gozart/" + videoID
 	if _, err := os.Stat(cacheDir); err == nil {
 		d.logger.LogFileWithStdout("downloaded video found in cache. Copying to files...", logger.Info)
 		exec.Command("cp", "-r", cacheDir, d.tempDir).Run()
@@ -88,7 +94,7 @@ func (d *VideoDownloader) DownloadVideoUsingPkg(link string) string {
 	}
 
 	d.logger.LogFileWithStdout("Started Downloading "+link, logger.Info)
-	
+
 	cmd := exec.Command(d.configLoader.ConfigData.YtdlpPath, link, "--output", d.tempDir+"/%(id)s/input.%(ext)s")
 	if err := cmd.Run(); err != nil {
 		d.logger.LogFileWithStdout("Failed to download the video "+link, logger.Error)
@@ -98,7 +104,7 @@ func (d *VideoDownloader) DownloadVideoUsingPkg(link string) string {
 	d.logger.LogFileWithStdout("Copying downloaded video to cache...", logger.Info)
 	os.MkdirAll(".cache/gozart", 0755)
 	tempDirID := d.tempDir + "/" + videoID
-	exec.Command("cp", "-r", tempDirID, ".cache/gozart/").Run()
+	exec.Command("cp", "-r", tempDirID, homeDir+".cache/gozart/").Run()
 
 	d.logger.LogFileWithStdout("Completed Downloading "+link, logger.Info)
 	return videoID

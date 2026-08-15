@@ -5,9 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/spf13/cobra"
 	"gozart/pkg/config"
 	"gozart/pkg/logger"
+
+	"github.com/spf13/cobra"
 )
 
 var resetFlag bool
@@ -41,7 +42,12 @@ var cleanCmd = &cobra.Command{
 		}
 
 		if deepFlag {
-			if err := os.RemoveAll(".cache/gozart"); err == nil {
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				l.LogFileWithStdout("Failed to get homedir for user", logger.Fatal)
+				return
+			}
+			if err := os.RemoveAll(homeDir + ".cache/gozart"); err == nil {
 				l.LogFileWithStdout("Removed cache folder", logger.Info)
 			}
 		}
