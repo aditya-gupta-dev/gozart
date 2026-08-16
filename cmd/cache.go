@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"gozart/utils"
 	"io/fs"
@@ -26,7 +27,13 @@ var cacheCommand = &cobra.Command{
 		for _, path := range paths {
 			size, err := getTotalSize(path)
 			if err != nil {
-				fmt.Printf("Error: unable to read ( %s ) : err-msg [ %s ]\n", path, err)
+				if errors.Is(err, fs.ErrNotExist) {
+					continue
+				} else if errors.Is(err, fs.ErrPermission) {
+					fmt.Printf("Error: not enough permissions, ( %s ): [ %s ]\n", path, err)
+				} else {
+					fmt.Printf("Error: unable to read ( %s ) : err-msg [ %s ]\n", path, err)
+				}
 				continue
 			}
 			fmt.Println(path, "->", utils.FormatSize(float64(size)))
