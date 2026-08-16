@@ -19,7 +19,7 @@ var cacheCommand = &cobra.Command{
 
 		var paths []string = []string{
 			filepath.Join(utils.Unwrap(os.UserHomeDir()), ".cache/gozart"),
-			filepath.Join(utils.Unwrap(os.Getwd()), "outpu"),
+			filepath.Join(utils.Unwrap(os.Getwd()), "output"),
 			filepath.Join(utils.Unwrap(os.Getwd()), "files"),
 		}
 
