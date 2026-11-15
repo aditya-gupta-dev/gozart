@@ -1,112 +1,44 @@
 {{template "base.html" .}}
 
 {{define "content"}}
-<div>
-  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+<div class="page">
+  <header class="page-header">
     <div>
-      <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.025em;">Mission Control</h1>
-      <p style="color: var(--text-muted); margin-top: 0.25rem;">Autonomous YouTube research, synthesis, render & publishing engine</p>
+      <h1 class="large-title">Videos</h1>
+      <p class="subtitle">Every idea Gozart has turned into a video.</p>
     </div>
-    <a href="/new" class="btn btn-primary">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-      New Autonomous Video
+    <a href="/new" class="btn btn-prominent">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      New Video
     </a>
-  </div>
+  </header>
 
-  <!-- Summary Cards -->
-  <div class="grid-stats">
-    <div class="stat-card">
-      <div>
-        <div class="stat-label">Total Videos Generated</div>
-        <div class="stat-value">{{.Stats.Total}}</div>
-      </div>
-      <div class="stat-icon">🎬</div>
-    </div>
-    <div class="stat-card">
-      <div>
-        <div class="stat-label">Published to YouTube</div>
-        <div class="stat-value" style="color: #34d399;">{{.Stats.Uploaded}}</div>
-      </div>
-      <div class="stat-icon" style="background-color: rgba(16, 185, 129, 0.15); color: #34d399;">🚀</div>
-    </div>
-    <div class="stat-card">
-      <div>
-        <div class="stat-label">Active Background Jobs</div>
-        <div class="stat-value" style="color: #60a5fa;">{{.Stats.Active}}</div>
-      </div>
-      <div class="stat-icon" style="background-color: rgba(59, 130, 246, 0.15); color: #60a5fa;">⚡</div>
-    </div>
-  </div>
+  {{if .Jobs}}
+  <p class="summary">
+    <span><strong>{{.Stats.Total}}</strong> created</span>
+    <span><strong>{{.Stats.Uploaded}}</strong> published</span>
+    <span><strong>{{.Stats.Active}}</strong> in progress</span>
+  </p>
 
-  <!-- Recent Jobs Table -->
-  <div class="table-card">
-    <div class="table-header">
-      <div class="table-title">Pipeline Generations</div>
-      <span style="font-size: 0.85rem; color: var(--text-muted);">Real-time checkpoint tracking</span>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Topic & Title</th>
-          <th>Format</th>
-          <th>Region</th>
-          <th>Stage Checkpoint</th>
-          <th>Progress</th>
-          <th>Status</th>
-          <th>Created</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{if not .Jobs}}
-        <tr>
-          <td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">
-            No video jobs generated yet. Click <strong>New Autonomous Video</strong> to launch your first pipeline run!
-          </td>
-        </tr>
-        {{else}}
-        {{range .Jobs}}
-        <tr>
-          <td style="font-weight: 600;">
-            <a href="/jobs/{{.ID}}" style="color: #60a5fa; hover: underline;">{{.Topic}}</a>
-          </td>
-          <td>
-            {{if eq .Format "shorts_9_16"}}
-            <span class="badge" style="background-color: rgba(139, 92, 246, 0.15); color: #a78bfa;">9:16 Shorts</span>
-            {{else}}
-            <span class="badge" style="background-color: rgba(59, 130, 246, 0.15); color: #60a5fa;">16:9 Long</span>
-            {{end}}
-          </td>
-          <td><span style="font-family: monospace; font-weight: 700;">{{.CountryCode}}</span></td>
-          <td><span style="font-size: 0.8rem; color: var(--text-muted);">{{.CurrentStep}}</span></td>
-          <td style="min-width: 120px;">
-            <div style="background-color: #090d16; border-radius: 9999px; height: 8px; overflow: hidden; width: 100%;">
-              <div style="background: linear-gradient(90deg, #3b82f6, #10b981); height: 100%; width: {{.ProgressPct}}%;"></div>
-            </div>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">{{.ProgressPct}}%</span>
-          </td>
-          <td>
-            {{if eq .Status "RUNNING"}}
-            <span class="badge badge-running">Running</span>
-            {{else if eq .Status "COMPLETED"}}
-            <span class="badge badge-completed">Completed</span>
-            {{else if eq .Status "FAILED"}}
-            <span class="badge badge-failed">Failed</span>
-            {{else}}
-            <span class="badge badge-queued">{{.Status}}</span>
-            {{end}}
-          </td>
-          <td style="color: var(--text-muted); font-size: 0.8rem;">{{.CreatedAt.Format "Jan 02 15:04"}}</td>
-          <td>
-            <a href="/jobs/{{.ID}}" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
-              Inspect
-            </a>
-          </td>
-        </tr>
-        {{end}}
-        {{end}}
-      </tbody>
-    </table>
+  <div class="group" role="list">
+    {{range .Jobs}}
+    <a class="row video-row" role="listitem" href="/jobs/{{.ID}}">
+      <span class="row-label">
+        <span class="title">{{.Topic}}</span>
+        <small>{{if eq .Format "shorts_9_16"}}Short · 9:16{{else}}Long · 16:9{{end}} · {{.CountryCode}} · {{.CreatedAt.Format "Jan 2, 15:04"}}</small>
+      </span>
+      {{template "miniStrip" .}}
+      {{template "statusBadge" .}}
+      <svg class="chev" width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 2 6 6-6 6"/></svg>
+    </a>
+    {{end}}
   </div>
+  {{else}}
+  <div class="group empty">
+    <h2>No videos yet</h2>
+    <p>Give Gozart a topic and it will research, write, voice and assemble a video for you.</p>
+    <a href="/new" class="btn btn-prominent">Create Your First Video</a>
+  </div>
+  {{end}}
 </div>
 {{end}}

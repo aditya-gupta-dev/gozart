@@ -2,35 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{if .Title}}{{.Title}} - {{end}}Gozart Autonomous Video Engine</title>
-  <link rel="stylesheet" href="/static/css/tailwind.css">
-  <script src="/static/js/htmx.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>{{if .Title}}{{.Title}} · {{end}}Gozart</title>
+  <link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body>
-  <header class="nav-header">
-    <div class="container nav-container">
-      <a href="/" class="nav-logo">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-        </svg>
-        <span>Gozart</span>
-        <span class="nav-logo-badge">v2.0 Auto</span>
+  <div class="app">
+    <aside class="sidebar">
+      <a href="/" class="brand" aria-label="Gozart home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>
+        </span>
+        Gozart
       </a>
-      <nav class="nav-links">
-        <a href="/" class="nav-link {{if eq .ActiveNav "dashboard"}}active{{end}}">Dashboard</a>
-        <a href="/new" class="nav-link {{if eq .ActiveNav "new"}}active{{end}}">+ New Pipeline</a>
-        <a href="/settings" class="nav-link {{if eq .ActiveNav "settings"}}active{{end}}">Settings</a>
-        <a href="/new" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Create Video
+      <nav class="nav" aria-label="Main">
+        <a href="/" {{if eq .ActiveNav "dashboard"}}aria-current="page"{{end}}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></svg>
+          <span>Videos</span>
+        </a>
+        <a href="/new" {{if eq .ActiveNav "new"}}aria-current="page"{{end}}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          <span>New Video</span>
+        </a>
+        <a href="/settings" {{if eq .ActiveNav "settings"}}aria-current="page"{{end}}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+          <span>Settings</span>
         </a>
       </nav>
-    </div>
-  </header>
+    </aside>
 
-  <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
-    {{template "content" .}}
-  </main>
+    <main class="main" id="main">
+      {{template "content" .}}
+    </main>
+  </div>
 </body>
 </html>
+
+{{/* ---------- Shared partials ---------- */}}
+
+{{define "statusBadge"}}{{if eq .Status "RUNNING"}}<span class="status live">In progress</span>{{else if eq .Status "COMPLETED"}}{{if .YouTubeVideoID}}<span class="status done">Published</span>{{else}}<span class="status done">Ready</span>{{end}}{{else if eq .Status "FAILED"}}<span class="status failed">Stopped</span>{{else}}<span class="status waiting">Queued</span>{{end}}{{end}}
+
+{{define "stepLabel"}}{{if eq . "INIT"}}Starting{{else if eq . "RESEARCHING"}}Searching YouTube for top videos{{else if eq . "RESEARCH_DONE"}}Research finished{{else if eq . "ANALYZING_SENTIMENT"}}Reading viewer comments{{else if eq . "SENTIMENT_DONE"}}Audience analysis finished{{else if eq . "WRITING_SCRIPT"}}Writing the script{{else if eq . "SCRIPT_DONE"}}Script finished{{else if eq . "PARALLEL_GENERATING"}}Making voice, visuals, thumbnail and SEO{{else if eq . "PARALLEL_GEN_DONE"}}All pieces created{{else if eq . "COMPOSITING"}}Assembling the final video{{else if eq . "COMPOSITED"}}Video ready{{else if eq . "UPLOADING"}}Uploading to YouTube{{else if eq . "UPLOADED"}}Published on YouTube{{else if eq . "FAILED"}}Stopped{{else}}{{.}}{{end}}{{end}}
+
+{{/* Current-stage class: live while running, failed when stopped */}}
+{{define "cur"}}{{if eq .Status "RUNNING"}}live{{else if eq .Status "FAILED"}}failed{{end}}{{end}}
+{{define "c1"}}{{if ge .ProgressPct 25}}done{{else}}{{template "cur" .}}{{end}}{{end}}
+{{define "c2"}}{{if ge .ProgressPct 40}}done{{else if ge .ProgressPct 25}}{{template "cur" .}}{{end}}{{end}}
+{{define "c3"}}{{if ge .ProgressPct 55}}done{{else if ge .ProgressPct 40}}{{template "cur" .}}{{end}}{{end}}
+{{define "c4"}}{{if ge .ProgressPct 80}}done{{else if ge .ProgressPct 55}}{{template "cur" .}}{{end}}{{end}}
+{{define "c5"}}{{if ge .ProgressPct 95}}done{{else if ge .ProgressPct 80}}{{template "cur" .}}{{end}}{{end}}
+{{define "c6"}}{{if .YouTubeVideoID}}done{{else if ge .ProgressPct 95}}{{template "cur" .}}{{end}}{{end}}
+
+{{define "miniStrip"}}<span class="mini-strip" aria-hidden="true"><span class="{{template "c1" .}}"></span><span class="{{template "c2" .}}"></span><span class="{{template "c3" .}}"></span><span class="{{template "c4" .}}"></span><span class="{{template "c5" .}}"></span><span class="{{template "c6" .}}"></span></span>{{end}}

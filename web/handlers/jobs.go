@@ -40,7 +40,7 @@ func (h *JobsHandler) HandleNew(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"Title":     "Launch Autonomous Pipeline",
+		"Title":     "New Video",
 		"ActiveNav": "new",
 	}
 

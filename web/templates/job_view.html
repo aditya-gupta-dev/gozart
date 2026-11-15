@@ -1,323 +1,268 @@
 {{template "base.html" .}}
 
 {{define "content"}}
-<div>
-  <!-- Header with Job Info -->
-  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
-    <div>
-      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-        <a href="/" style="color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
-          &larr; Back to Dashboard
-        </a>
-        <span style="color: var(--border);">|</span>
-        <span style="font-family: monospace; font-size: 0.85rem; color: #60a5fa;">{{.Job.ID}}</span>
-      </div>
-      <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.025em;">{{.Job.Topic}}</h1>
-      <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
-        <span>Region: <strong style="color: var(--text-main);">{{.Job.CountryCode}}</strong></span>
-        <span>&bull;</span>
-        <span>Format: <strong style="color: var(--text-main);">{{.Job.Format}}</strong></span>
-        <span>&bull;</span>
-        <span>Created: {{.Job.CreatedAt.Format "Jan 02, 15:04:05 MST"}}</span>
-      </div>
-    </div>
-    <div style="display: flex; gap: 0.75rem; align-items: center;">
-      {{if eq .Job.Status "RUNNING"}}
-      <span class="badge badge-running">Running {{.Job.ProgressPct}}%</span>
-      {{else if eq .Job.Status "COMPLETED"}}
-      <span class="badge badge-completed">Completed</span>
-      {{else if eq .Job.Status "FAILED"}}
-      <span class="badge badge-failed">Failed</span>
-      {{else}}
-      <span class="badge badge-queued">{{.Job.Status}}</span>
-      {{end}}
+<div class="page" data-job="{{.Job.ID}}" data-status="{{.Job.Status}}" data-published="{{if .Job.YouTubeVideoID}}1{{end}}">
+  <a href="/" class="back">
+    <svg width="9" height="15" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2 2 8l6 6"/></svg>
+    Videos
+  </a>
 
-      {{if .Job.YouTubeVideoID}}
-      <a href="https://youtube.com/watch?v={{.Job.YouTubeVideoID}}" target="_blank" class="btn btn-primary" style="background: #ef4444; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);">
-        Watch on YouTube
-      </a>
-      {{end}}
+  <header class="page-header">
+    <div style="min-width:0">
+      <h1 class="large-title">{{.Job.Topic}}</h1>
+      <p class="meta">
+        <span>{{if eq .Job.Format "shorts_9_16"}}Short · 9:16{{else}}Long · 16:9{{end}}</span>
+        <span>Audience: {{.Job.CountryCode}}</span>
+        <span>Created {{.Job.CreatedAt.Format "Jan 2, 2006 at 15:04"}}</span>
+      </p>
     </div>
+    {{if .Job.YouTubeVideoID}}
+    <a href="https://youtube.com/watch?v={{.Job.YouTubeVideoID}}" target="_blank" rel="noopener" class="btn btn-prominent">Watch on YouTube</a>
+    {{end}}
+  </header>
+
+  <!-- Signature: the filmstrip stage track -->
+  <section aria-labelledby="stages-h">
+    <h2 id="stages-h" class="visually-hidden">Stages</h2>
+    <ol class="strip" id="strip">
+      <li class="{{template "c1" .Job}}"><span class="n">1</span><span class="name">Research</span><span class="state"></span></li>
+      <li class="{{template "c2" .Job}}"><span class="n">2</span><span class="name">Audience</span><span class="state"></span></li>
+      <li class="{{template "c3" .Job}}"><span class="n">3</span><span class="name">Script</span><span class="state"></span></li>
+      <li class="{{template "c4" .Job}}"><span class="n">4</span><span class="name">Create</span><span class="state"></span></li>
+      <li class="{{template "c5" .Job}}"><span class="n">5</span><span class="name">Assemble</span><span class="state"></span></li>
+      <li class="{{template "c6" .Job}}"><span class="n">6</span><span class="name">Publish</span><span class="state"></span></li>
+    </ol>
+
+    <div class="progress">
+      <div class="progress-head">
+        <span id="step-label" aria-live="polite">{{if eq .Job.Status "FAILED"}}Stopped during: {{end}}{{template "stepLabel" .Job.CurrentStep}}</span>
+        <span class="pct" id="pct-label">{{.Job.ProgressPct}}%</span>
+      </div>
+      <progress id="progress" max="100" value="{{.Job.ProgressPct}}" aria-labelledby="step-label"></progress>
+    </div>
+  </section>
+
+  <!-- Sections -->
+  <div class="segmented tabs" role="tablist" aria-label="Video details">
+    <button type="button" role="tab" id="t-activity" aria-controls="p-activity" class="seg-tab">Activity</button>
+    <button type="button" role="tab" id="t-preview" aria-controls="p-preview" class="seg-tab">Preview</button>
+    <button type="button" role="tab" id="t-script" aria-controls="p-script" class="seg-tab">Script</button>
+    <button type="button" role="tab" id="t-audience" aria-controls="p-audience" class="seg-tab">Audience</button>
+    <button type="button" role="tab" id="t-seo" aria-controls="p-seo" class="seg-tab">SEO</button>
   </div>
 
-  <!-- Stage Stepper -->
-  <div class="stepper-container">
-    <div class="step-item">
-      <div class="step-node {{if ge .Job.ProgressPct 15}}done{{else}}active{{end}}">1</div>
-      <span class="step-label">Research</span>
-    </div>
-    <div class="step-item">
-      <div class="step-node {{if ge .Job.ProgressPct 35}}done{{else if ge .Job.ProgressPct 15}}active{{end}}">2</div>
-      <span class="step-label">Sentiment</span>
-    </div>
-    <div class="step-item">
-      <div class="step-node {{if ge .Job.ProgressPct 50}}done{{else if ge .Job.ProgressPct 35}}active{{end}}">3</div>
-      <span class="step-label">Script</span>
-    </div>
-    <div class="step-item">
-      <div class="step-node {{if ge .Job.ProgressPct 80}}done{{else if ge .Job.ProgressPct 50}}active{{end}}">4</div>
-      <span class="step-label">4-Track Gen</span>
-    </div>
-    <div class="step-item">
-      <div class="step-node {{if ge .Job.ProgressPct 95}}done{{else if ge .Job.ProgressPct 80}}active{{end}}">5</div>
-      <span class="step-label">Composite</span>
-    </div>
-    <div class="step-item">
-      <div class="step-node {{if ge .Job.ProgressPct 100}}done{{else if ge .Job.ProgressPct 95}}active{{end}}">6</div>
-      <span class="step-label">Publish</span>
-    </div>
-  </div>
-
-  <!-- Tabs Navigation -->
-  <div class="tabs-container">
-    <button class="tab-btn active" onclick="switchTab('terminal', this)">Live Logs</button>
-    <button class="tab-btn" onclick="switchTab('preview', this)">Preview & Publish</button>
-    <button class="tab-btn" onclick="switchTab('script', this)">Script Spec</button>
-    <button class="tab-btn" onclick="switchTab('sentiment', this)">Audience Sentiment</button>
-    <button class="tab-btn" onclick="switchTab('seo', this)">SEO & Metadata</button>
-  </div>
-
-  <!-- Tab Content: Live Logs -->
-  <div id="tab-terminal" class="tab-content">
-    <div class="terminal-window">
-      <div class="terminal-header">
-        <div class="terminal-dot dot-red"></div>
-        <div class="terminal-dot dot-yellow"></div>
-        <div class="terminal-dot dot-green"></div>
-        <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 0.5rem;">SSE Live Pipeline Stream &bull; job-{{.Job.ID}}</span>
-      </div>
-      <div id="terminal-body" class="terminal-body">
+  <!-- Activity -->
+  <section id="p-activity" role="tabpanel" aria-labelledby="t-activity" class="panel" hidden>
+    <div class="group">
+      <div class="log" id="log" role="log" aria-live="polite" tabindex="0">
         {{range .Logs}}
-        <div class="log-line log-{{.Level}}">
-          <span style="color: var(--text-muted); font-size: 0.75rem;">[{{.CreatedAt.Format "15:04:05"}}]</span>
-          <strong>[{{.Level}}]</strong> {{.Message}}
-        </div>
+        <div class="log-line {{.Level}}"><time>{{.CreatedAt.Format "15:04:05"}}</time><span>{{.Message}}</span></div>
+        {{else}}
+        <div class="log-line"><time></time><span>Waiting for the first update…</span></div>
         {{end}}
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Tab Content: Preview & Publish -->
-  <div id="tab-preview" class="tab-content" style="display: none;">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-      <div class="table-card" style="margin: 0; padding: 1.5rem;">
-        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">Video Preview</h3>
+  <!-- Preview & publish -->
+  <section id="p-preview" role="tabpanel" aria-labelledby="t-preview" class="panel" hidden>
+    <div class="two-col">
+      <div>
+        <h2 class="section-title">Video</h2>
         {{if .Job.VideoPath}}
-        <video controls style="width: 100%; max-height: 480px; border-radius: 0.5rem; background: #000;" src="/media/video/{{.Job.ID}}"></video>
+        <div class="media-frame"><video controls preload="metadata" src="/media/video/{{.Job.ID}}"></video></div>
         {{else}}
-        <div style="height: 320px; background: #090d16; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
-          Video render is currently generating...
-        </div>
+        <div class="placeholder">The video appears here when stage 5 finishes.</div>
         {{end}}
       </div>
 
-      <div class="table-card" style="margin: 0; padding: 1.5rem;">
-        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">Generated Thumbnail</h3>
+      <div>
+        <h2 class="section-title">Thumbnail</h2>
         {{if .Job.ThumbnailPath}}
-        <img src="/media/thumb/{{.Job.ID}}" alt="Generated Thumbnail" style="width: 100%; border-radius: 0.5rem; border: 1px solid var(--border);">
+        <img class="thumb" src="/media/thumb/{{.Job.ID}}" alt="Thumbnail for {{.Job.Topic}}">
         {{else}}
-        <div style="height: 220px; background: #090d16; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
-          Thumbnail is currently generating...
-        </div>
+        <div class="placeholder" style="min-height:8rem">The thumbnail appears here when stage 4 finishes.</div>
         {{end}}
 
-        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-          {{if .Job.YouTubeVideoID}}
-          <div style="padding: 1rem; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 0.5rem;">
-            <strong style="color: #34d399;">Published!</strong> YouTube Video ID: <code>{{.Job.YouTubeVideoID}}</code>
-          </div>
-          {{else if .Job.VideoPath}}
-          <form action="/api/jobs/{{.Job.ID}}/publish" method="POST">
-            <div class="form-group" style="margin-bottom: 0.75rem;">
-              <label class="form-label" style="font-size: 0.8rem;">YouTube Video Title</label>
-              <input type="text" name="title" class="form-input" value="{{if .SEO}}{{.SEO.ChosenTitle}}{{else}}{{.Job.Topic}}{{end}}" required>
-            </div>
-            <div class="form-group" style="margin-bottom: 0.75rem;">
-              <label class="form-label" style="font-size: 0.8rem;">Video Description & Chapters</label>
-              <textarea name="description" class="form-textarea" rows="4">{{if .SEO}}{{.SEO.Description}}{{end}}</textarea>
-            </div>
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label class="form-label" style="font-size: 0.8rem;">Discovery Tags (comma-separated)</label>
-              <input type="text" name="tags" class="form-input" value="{{if .SEO}}{{range $i, $t := .SEO.Tags}}{{if $i}}, {{end}}{{$t}}{{end}}{{end}}">
-            </div>
-            <button type="submit" class="btn btn-success" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem;">
-              🚀 Publish to YouTube
-            </button>
-          </form>
-          {{else}}
-          <button class="btn btn-secondary" disabled style="width: 100%; justify-content: center; opacity: 0.5; cursor: not-allowed;">
-            Awaiting Video Completion
-          </button>
-          {{end}}
+        <h2 class="section-title">YouTube</h2>
+        {{if .Job.YouTubeVideoID}}
+        <div class="banner ok" style="margin:0">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1.2 14.2-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4-7 7Z"/></svg>
+          <div>Published. Video ID <code>{{.Job.YouTubeVideoID}}</code></div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tab Content: Script Spec -->
-  <div id="tab-script" class="tab-content" style="display: none;">
-    <div class="table-card" style="margin: 0; padding: 1.5rem;">
-      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">Scene-by-Scene Script Specification</h3>
-      {{if .Script}}
-      <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 1rem; border-radius: 0.25rem; margin-bottom: 1.5rem;">
-        <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #60a5fa;">Hook &bull; {{.Script.Hook.Formula}} ({{.Script.Hook.DurationSec}}s)</span>
-        <div style="font-size: 1.1rem; font-weight: 600; margin: 0.35rem 0;">"{{.Script.Hook.Voiceover}}"</div>
-        <div style="font-size: 0.85rem; color: var(--text-muted);">Visual: {{.Script.Hook.VisualDirection}}</div>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 1rem;">
-        {{range .Script.Scenes}}
-        <div style="background: #090d16; border: 1px solid var(--border); padding: 1.25rem; border-radius: 0.5rem;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span style="font-weight: 700; color: #f59e0b;">Scene {{.SceneID}}: {{.Type}}</span>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">{{.DurationSec}}s &bull; Cue: {{.SFXCue}}</span>
+        {{else if .Job.VideoPath}}
+        <form action="/api/jobs/{{.Job.ID}}/publish" method="POST" class="group">
+          <div class="row stack">
+            <label for="pub-title">Title</label>
+            <input type="text" id="pub-title" name="title" class="field" value="{{if .SEO}}{{.SEO.ChosenTitle}}{{else}}{{.Job.Topic}}{{end}}" required maxlength="100">
           </div>
-          <p style="font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem;">"{{.Voiceover}}"</p>
-          <div style="font-size: 0.85rem; color: var(--text-muted); background: #131b2e; padding: 0.5rem 0.75rem; border-radius: 0.25rem;">
-            <strong>Visual Direction:</strong> {{.VisualDescription}}
+          <div class="row stack">
+            <label for="pub-desc">Description</label>
+            <textarea id="pub-desc" name="description" class="field" rows="5">{{if .SEO}}{{.SEO.Description}}{{end}}</textarea>
           </div>
-        </div>
+          <div class="row stack">
+            <label for="pub-tags">Tags</label>
+            <input type="text" id="pub-tags" name="tags" class="field" value="{{if .SEO}}{{range $i, $t := .SEO.Tags}}{{if $i}}, {{end}}{{$t}}{{end}}{{end}}">
+            <span class="hint">Separate tags with commas.</span>
+          </div>
+          <div class="row">
+            <button type="submit" class="btn btn-prominent btn-large">Publish to YouTube</button>
+          </div>
+        </form>
+        <p class="section-footer">The video is uploaded as public.</p>
+        {{else}}
+        <div class="placeholder" style="min-height:6rem">You can publish once the video is ready.</div>
         {{end}}
       </div>
-
-      <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 1rem; border-radius: 0.25rem; margin-top: 1.5rem;">
-        <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #34d399;">CTA ({{.Script.CTA.DurationSec}}s)</span>
-        <div style="font-size: 1.05rem; font-weight: 600; margin: 0.35rem 0;">"{{.Script.CTA.Voiceover}}"</div>
-        <div style="font-size: 0.85rem; color: var(--text-muted);">Visual: {{.Script.CTA.VisualDescription}}</div>
-      </div>
-      {{else}}
-      <p style="color: var(--text-muted);">Script is currently generating or not yet available.</p>
-      {{end}}
     </div>
-  </div>
+  </section>
 
-  <!-- Tab Content: Audience Sentiment -->
-  <div id="tab-sentiment" class="tab-content" style="display: none;">
-    <div class="table-card" style="margin: 0; padding: 1.5rem;">
-      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.5rem;">Audience Sentiment & Curiosity Gaps</h3>
-      {{if .Sentiment}}
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-        <div style="background: #090d16; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid var(--border);">
-          <h4 style="color: #34d399; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Positive Triggers</h4>
-          <ul style="padding-left: 1.25rem; font-size: 0.85rem; color: var(--text-muted);">
-            {{range .Sentiment.AudienceSentiment.PositiveTriggers}}
-            <li style="margin-bottom: 0.35rem;">{{.}}</li>
-            {{end}}
-          </ul>
-        </div>
-
-        <div style="background: #090d16; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid var(--border);">
-          <h4 style="color: #f87171; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Negative Friction</h4>
-          <ul style="padding-left: 1.25rem; font-size: 0.85rem; color: var(--text-muted);">
-            {{range .Sentiment.AudienceSentiment.NegativeFriction}}
-            <li style="margin-bottom: 0.35rem;">{{.}}</li>
-            {{end}}
-          </ul>
-        </div>
-
-        <div style="background: #090d16; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid var(--border); grid-column: span 2;">
-          <h4 style="color: #60a5fa; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Unanswered Curiosity Questions</h4>
-          <ul style="padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-main);">
-            {{range .Sentiment.AudienceSentiment.UnansweredQuestions}}
-            <li style="margin-bottom: 0.5rem; font-weight: 500;">{{.}}</li>
-            {{end}}
-          </ul>
-        </div>
+  <!-- Script -->
+  <section id="p-script" role="tabpanel" aria-labelledby="t-script" class="panel" hidden>
+    {{if .Script}}
+    <div class="group">
+      <div class="beat">
+        <div class="kicker">Hook · {{.Script.Hook.DurationSec}}s</div>
+        <blockquote>“{{.Script.Hook.Voiceover}}”</blockquote>
+        <div class="visual">On screen: {{.Script.Hook.VisualDirection}}</div>
       </div>
-      {{else}}
-      <p style="color: var(--text-muted);">Sentiment data is currently extracting...</p>
+      {{range .Script.Scenes}}
+      <div class="beat">
+        <div class="kicker">Scene {{.SceneID}} · {{.DurationSec}}s</div>
+        <blockquote>“{{.Voiceover}}”</blockquote>
+        <div class="visual">On screen: {{.VisualDescription}}</div>
+      </div>
       {{end}}
+      <div class="beat">
+        <div class="kicker">Call to action · {{.Script.CTA.DurationSec}}s</div>
+        <blockquote>“{{.Script.CTA.Voiceover}}”</blockquote>
+        <div class="visual">On screen: {{.Script.CTA.VisualDescription}}</div>
+      </div>
     </div>
-  </div>
+    {{else}}
+    <div class="placeholder">The script appears here when stage 3 finishes.</div>
+    {{end}}
+  </section>
 
-  <!-- Tab Content: SEO -->
-  <div id="tab-seo" class="tab-content" style="display: none;">
-    <div class="table-card" style="margin: 0; padding: 1.5rem;">
-      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.5rem;">YouTube SEO Optimization</h3>
-      {{if .SEO}}
-      <div class="form-group">
-        <label class="form-label">Chosen Title</label>
-        <input type="text" class="form-input" value="{{.SEO.ChosenTitle}}" readonly>
+  <!-- Audience -->
+  <section id="p-audience" role="tabpanel" aria-labelledby="t-audience" class="panel" hidden>
+    {{if .Sentiment}}
+    <h2 class="section-title">Questions Viewers Still Have</h2>
+    <div class="group"><ul class="list">{{range .Sentiment.AudienceSentiment.UnansweredQuestions}}<li>{{.}}</li>{{end}}</ul></div>
+    <div class="two-col">
+      <div>
+        <h2 class="section-title">What They Liked</h2>
+        <div class="group"><ul class="list">{{range .Sentiment.AudienceSentiment.PositiveTriggers}}<li>{{.}}</li>{{end}}</ul></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Title Candidates Tested</label>
-        <ul style="padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-muted);">
-          {{range .SEO.TitleCandidates}}
-          <li style="margin-bottom: 0.35rem;">{{.}}</li>
-          {{end}}
-        </ul>
+      <div>
+        <h2 class="section-title">What Put Them Off</h2>
+        <div class="group"><ul class="list">{{range .Sentiment.AudienceSentiment.NegativeFriction}}<li>{{.}}</li>{{end}}</ul></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Description & Chapters</label>
-        <textarea class="form-textarea" rows="6" readonly>{{.SEO.Description}}</textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Tags ({{len .SEO.Tags}})</label>
-        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
-          {{range .SEO.Tags}}
-          <span class="badge" style="background: #090d16; border: 1px solid var(--border); text-transform: none;">{{.}}</span>
-          {{end}}
-        </div>
-      </div>
-      {{else}}
-      <p style="color: var(--text-muted);">SEO metadata is generating...</p>
-      {{end}}
     </div>
-  </div>
+    {{if .Sentiment.AudienceSentiment.EmotionalTone}}
+    <p class="section-footer">Overall mood: {{.Sentiment.AudienceSentiment.EmotionalTone}}</p>
+    {{end}}
+    {{else}}
+    <div class="placeholder">Audience insights appear here when stage 2 finishes.</div>
+    {{end}}
+  </section>
+
+  <!-- SEO -->
+  <section id="p-seo" role="tabpanel" aria-labelledby="t-seo" class="panel" hidden>
+    {{if .SEO}}
+    <h2 class="section-title">Chosen Title</h2>
+    <div class="group"><div class="row"><span class="row-label" style="font-weight:600">{{.SEO.ChosenTitle}}</span></div></div>
+
+    <h2 class="section-title">Other Titles Considered</h2>
+    <div class="group"><ul class="list">{{range .SEO.TitleCandidates}}<li>{{.}}</li>{{end}}</ul></div>
+
+    <h2 class="section-title">Description</h2>
+    <div class="group"><div class="row"><span class="row-label" style="white-space:pre-wrap">{{.SEO.Description}}</span></div></div>
+
+    <h2 class="section-title">Tags · {{len .SEO.Tags}}</h2>
+    <div class="group"><div class="tags">{{range .SEO.Tags}}<span class="tag">{{.}}</span>{{end}}</div></div>
+    {{else}}
+    <div class="placeholder">Title, description and tags appear here when stage 4 finishes.</div>
+    {{end}}
+  </section>
 </div>
 
 <script>
-function switchTab(tabName, btn) {
-  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + tabName).style.display = 'block';
-  btn.classList.add('active');
-}
+(function () {
+  var root = document.querySelector('[data-job]');
+  var jobID = root.dataset.job;
 
-// Setup Server-Sent Events (SSE) live streaming
-(function() {
-  const jobID = "{{.Job.ID}}";
-  const terminal = document.getElementById("terminal-body");
+  /* ---- Segmented tabs (arrow keys move between tabs) ---- */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function select(tab, focus) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on);
+      t.tabIndex = on ? 0 : -1;
+      t.classList.toggle('on', on);
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    if (focus) tab.focus();
+    try { history.replaceState(null, '', '#' + tab.id.slice(2)); } catch (e) {}
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { select(t); });
+    t.addEventListener('keydown', function (e) {
+      var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (d) { e.preventDefault(); select(tabs[(i + d + tabs.length) % tabs.length], true); }
+    });
+  });
+  var initial = document.getElementById('t-' + location.hash.slice(1)) ||
+    (root.dataset.status === 'RUNNING' || root.dataset.status === 'QUEUED'
+      ? document.getElementById('t-activity') : document.getElementById('t-preview'));
+  select(initial);
+
+  /* ---- Live updates over Server-Sent Events ---- */
   if (!window.EventSource) return;
+  var log = document.getElementById('log');
+  var strip = document.querySelectorAll('#strip li');
+  var bar = document.getElementById('progress');
+  var pctLabel = document.getElementById('pct-label');
+  var stepLabel = document.getElementById('step-label');
+  var labels = {
+    INIT: 'Starting', RESEARCHING: 'Searching YouTube for top videos', RESEARCH_DONE: 'Research finished',
+    ANALYZING_SENTIMENT: 'Reading viewer comments', SENTIMENT_DONE: 'Audience analysis finished',
+    WRITING_SCRIPT: 'Writing the script', SCRIPT_DONE: 'Script finished',
+    PARALLEL_GENERATING: 'Making voice, visuals, thumbnail and SEO', PARALLEL_GEN_DONE: 'All pieces created',
+    COMPOSITING: 'Assembling the final video', COMPOSITED: 'Video ready',
+    UPLOADING: 'Uploading to YouTube', UPLOADED: 'Published on YouTube'
+  };
+  var doneAt = [25, 40, 55, 80, 95, 101];
 
-  const eventSource = new EventSource("/api/jobs/" + jobID + "/stream");
-  eventSource.onmessage = function(e) {
-    try {
-      const data = JSON.parse(e.data);
-      if (data.message) {
-        const line = document.createElement("div");
-        line.className = "log-line log-" + (data.level || "INFO");
-        line.innerHTML = '<span style="color: var(--text-muted); font-size: 0.75rem;">[' + (data.time || '') + ']</span> ' +
-                         '<strong>[' + (data.level || 'INFO') + ']</strong> ' + (data.message || '');
-        terminal.appendChild(line);
-        terminal.scrollTop = terminal.scrollHeight;
-      }
+  function paint(pct, step) {
+    bar.value = pct;
+    pctLabel.textContent = pct + '%';
+    if (step && labels[step]) stepLabel.textContent = labels[step];
+    strip.forEach(function (li, i) {
+      var done = i === 5 ? step === 'UPLOADED' : pct >= doneAt[i];
+      var current = !done && (i === 0 || pct >= doneAt[i - 1]);
+      li.className = done ? 'done' : current && pct < 100 ? 'live' : '';
+    });
+  }
 
-      if (data.progress_pct && data.progress_pct > 0) {
-        const badge = document.querySelector('.badge-running');
-        if (badge) {
-          badge.innerText = 'Running ' + data.progress_pct + '%';
-        }
-        const nodes = document.querySelectorAll('.step-node');
-        const thresholds = [15, 35, 50, 80, 95, 100];
-        thresholds.forEach((th, idx) => {
-          if (nodes[idx]) {
-            if (data.progress_pct >= th) {
-              nodes[idx].className = 'step-node done';
-            } else if (idx === 0 || data.progress_pct >= thresholds[idx-1]) {
-              nodes[idx].className = 'step-node active';
-            }
-          }
-        });
-      }
-
-      if (data.current_step === "COMPOSITED" && data.progress_pct >= 95) {
-        setTimeout(function() {
-          window.location.reload();
-        }, 1500);
-      }
-    } catch(err) {
-      console.error("SSE parse error", err);
+  var es = new EventSource('/api/jobs/' + jobID + '/stream');
+  es.onmessage = function (e) {
+    var data;
+    try { data = JSON.parse(e.data); } catch (err) { return; }
+    if (data.message) {
+      var line = document.createElement('div');
+      line.className = 'log-line ' + (data.level || 'INFO');
+      var t = document.createElement('time'); t.textContent = data.time || '';
+      var m = document.createElement('span'); m.textContent = data.message;
+      line.appendChild(t); line.appendChild(m);
+      var atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+      log.appendChild(line);
+      if (atBottom) log.scrollTop = log.scrollHeight;
+    }
+    if (data.progress_pct > 0) paint(data.progress_pct, data.current_step);
+    if ((data.current_step === 'COMPOSITED' && data.progress_pct >= 100) || data.current_step === 'UPLOADED') {
+      es.close();
+      setTimeout(function () { location.hash = 'preview'; location.reload(); }, 1200);
     }
   };
 })();

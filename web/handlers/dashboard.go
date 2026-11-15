@@ -39,7 +39,7 @@ func (h *DashboardHandler) HandleDashboard(w http.ResponseWriter, r *http.Reques
 	}
 
 	data := map[string]interface{}{
-		"Title":     "Mission Control",
+		"Title":     "Videos",
 		"ActiveNav": "dashboard",
 		"Stats":     stats,
 		"Jobs":      jobs,

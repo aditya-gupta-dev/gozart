@@ -48,8 +48,8 @@ func TestWebHandlers(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Errorf("GET / returned status %d, want %d", rr.Code, http.StatusOK)
 	}
-	if !strings.Contains(rr.Body.String(), "Mission Control") {
-		t.Errorf("GET / missing 'Mission Control'")
+	if !strings.Contains(rr.Body.String(), "Videos") {
+		t.Errorf("GET / missing 'Videos'")
 	}
 
 	// 2. New Video GET /new
@@ -59,8 +59,8 @@ func TestWebHandlers(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Errorf("GET /new returned status %d, want %d", rr.Code, http.StatusOK)
 	}
-	if !strings.Contains(rr.Body.String(), "Launch Autonomous Pipeline") {
-		t.Errorf("GET /new missing 'Launch Autonomous Pipeline'")
+	if !strings.Contains(rr.Body.String(), "New Video") {
+		t.Errorf("GET /new missing 'New Video'")
 	}
 
 	// 3. Settings GET /settings
@@ -70,8 +70,8 @@ func TestWebHandlers(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Errorf("GET /settings returned status %d, want %d", rr.Code, http.StatusOK)
 	}
-	if !strings.Contains(rr.Body.String(), "Engine Settings & Credentials") {
-		t.Errorf("GET /settings missing 'Engine Settings & Credentials'")
+	if !strings.Contains(rr.Body.String(), "Accounts, models and tools") {
+		t.Errorf("GET /settings missing settings subtitle")
 	}
 
 	// 4. Create Job POST /jobs/create

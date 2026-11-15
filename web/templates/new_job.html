@@ -1,84 +1,92 @@
 {{template "base.html" .}}
 
 {{define "content"}}
-<div style="max-width: 680px; margin: 0 auto;">
-  <div style="margin-bottom: 2rem;">
-    <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.025em;">Launch Autonomous Pipeline</h1>
-    <p style="color: var(--text-muted); margin-top: 0.25rem;">Enter a video idea to unleash autonomous research, scriptwriting, voiceover, Remotion visuals, and SEO.</p>
-  </div>
+<div class="page narrow">
+  <header class="page-header">
+    <div>
+      <h1 class="large-title">New Video</h1>
+      <p class="subtitle">Describe an idea. Gozart researches it, writes the script, and builds the video.</p>
+    </div>
+  </header>
 
-  <div class="form-card" style="margin: 0; max-width: 100%;">
-    <form action="/jobs/create" method="POST">
-      <div class="form-group">
-        <label class="form-label" for="topic">Video Topic / Premise</label>
-        <input type="text" id="topic" name="topic" class="form-input" placeholder="e.g. Why NASA stopped sending humans to the moon" required autofocus>
-        <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">The AI research agent will explore YouTube competition, find viral outliers, and mine audience comments on this topic.</span>
+  <form action="/jobs/create" method="POST">
+    <h2 class="section-title" id="idea-h">Idea</h2>
+    <div class="group" role="group" aria-labelledby="idea-h">
+      <div class="row stack">
+        <label for="topic">Topic</label>
+        <input type="text" id="topic" name="topic" class="field" placeholder="Why NASA stopped going to the Moon" required autofocus autocomplete="off">
       </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-        <div class="form-group">
-          <label class="form-label" for="country_code">Target Audience / Country</label>
-          <select id="country_code" name="country_code" class="form-select">
-            <option value="US" selected>United States (US)</option>
-            <option value="GB">United Kingdom (GB)</option>
-            <option value="CA">Canada (CA)</option>
-            <option value="AU">Australia (AU)</option>
-            <option value="IN">India (IN)</option>
-            <option value="DE">Germany (DE)</option>
-            <option value="FR">France (FR)</option>
-            <option value="JP">Japan (JP)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="format">Target Format</label>
-          <select id="format" name="format" class="form-select">
-            <option value="shorts_9_16" selected>Shorts (9:16 Vertical, 1080x1920)</option>
-            <option value="longform_16_9">Longform (16:9 Landscape, 1920x1080)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="tone">Script Tone & Pacing</label>
-        <select id="tone" name="tone" class="form-select">
-          <option value="sensational" selected>Sensational & Fast-Paced (High Retention)</option>
-          <option value="educational">Educational & Analytical (Documentary)</option>
-          <option value="mystery">Dark Mystery & Investigation</option>
-          <option value="storytelling">Narrative Storytelling</option>
-          <option value="humorous">Humorous & Irreverent</option>
+      <div class="row">
+        <label class="row-label" for="country_code">Audience</label>
+        <select id="country_code" name="country_code" class="field">
+          <option value="US" selected>United States</option>
+          <option value="GB">United Kingdom</option>
+          <option value="CA">Canada</option>
+          <option value="AU">Australia</option>
+          <option value="IN">India</option>
+          <option value="DE">Germany</option>
+          <option value="FR">France</option>
+          <option value="JP">Japan</option>
         </select>
       </div>
+    </div>
+    <p class="section-footer">Gozart studies popular videos and comments from this country.</p>
 
-      <div class="form-group">
-        <div style="display: flex; justify-content: space-between;">
-          <label class="form-label" for="duration">Target Duration: <span id="dur-val" style="color: #60a5fa; font-weight: 700;">50s</span></label>
+    <h2 class="section-title" id="video-h">Video</h2>
+    <div class="group" role="group" aria-labelledby="video-h">
+      <div class="row stack">
+        <span id="format-l" style="font-size:.875rem;font-weight:600">Format</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="format-l">
+          <input type="radio" id="fmt-short" name="format" value="shorts_9_16" checked>
+          <label for="fmt-short">Short · 9:16</label>
+          <input type="radio" id="fmt-long" name="format" value="longform_16_9">
+          <label for="fmt-long">Long · 16:9</label>
         </div>
-        <input type="range" id="duration" name="target_duration_sec" min="20" max="180" value="50" class="form-input" style="padding: 0; cursor: pointer;" oninput="document.getElementById('dur-val').innerText = this.value + 's'">
       </div>
-
-      <div class="form-group">
-        <label class="form-label" for="model_tier">Model Tier</label>
-        <select id="model_tier" name="model_tier" class="form-select">
-          <option value="local" selected>Local Ollama (qwen2.5 / llama3)</option>
-          <option value="cloud">Cloud Fallback (GPT-4o / Claude / Gemini)</option>
+      <div class="row">
+        <label class="row-label" for="tone">Tone</label>
+        <select id="tone" name="tone" class="field">
+          <option value="sensational" selected>Fast-paced</option>
+          <option value="educational">Educational</option>
+          <option value="mystery">Mystery</option>
+          <option value="storytelling">Storytelling</option>
+          <option value="humorous">Humorous</option>
         </select>
       </div>
+      <div class="row stack">
+        <label for="duration">Length <output id="dur-val" for="duration" class="hint" style="float:right;font-variant-numeric:tabular-nums">50 seconds</output></label>
+        <input type="range" id="duration" name="target_duration_sec" min="20" max="180" step="5" value="50"
+               oninput="document.getElementById('dur-val').value = this.value + ' seconds'">
+      </div>
+    </div>
 
-      <div class="form-group" style="margin-top: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-        <input type="checkbox" id="auto_upload" name="auto_upload" value="true" style="width: 1.1rem; height: 1.1rem; cursor: pointer;">
-        <label for="auto_upload" style="font-size: 0.9rem; cursor: pointer; color: var(--text-main);">
-          Auto-publish to YouTube once compositing and mastering finish
+    <h2 class="section-title" id="ai-h">Writing Model</h2>
+    <div class="group" role="group" aria-labelledby="ai-h">
+      <div class="row stack">
+        <div class="segmented" role="radiogroup" aria-labelledby="ai-h">
+          <input type="radio" id="tier-local" name="model_tier" value="local" checked>
+          <label for="tier-local">On this computer</label>
+          <input type="radio" id="tier-cloud" name="model_tier" value="cloud">
+          <label for="tier-cloud">Cloud</label>
+        </div>
+      </div>
+    </div>
+    <p class="section-footer">On this computer uses Ollama. Cloud needs an API key in Settings.</p>
+
+    <h2 class="section-title" id="pub-h">Publishing</h2>
+    <div class="group" role="group" aria-labelledby="pub-h">
+      <div class="row">
+        <label class="row-label" for="auto_upload">
+          Publish When Finished
+          <small>Uploads to YouTube as soon as the video is ready. Leave off to review first.</small>
         </label>
+        <input type="checkbox" class="switch" role="switch" id="auto_upload" name="auto_upload" value="true">
       </div>
+    </div>
 
-      <div style="margin-top: 2rem;">
-        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          Launch Autonomous Pipeline
-        </button>
-      </div>
-    </form>
-  </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-prominent btn-large">Create Video</button>
+    </div>
+  </form>
 </div>
 {{end}}
