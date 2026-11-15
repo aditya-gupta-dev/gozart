@@ -72,14 +72,14 @@ var randomizeCmd = &cobra.Command{
 		// process randomly selected videos
 		var wg sync.WaitGroup
 		sem := make(chan struct{}, 2) // hardcoded concurrency 2 for randomize
-		
+
 		for _, link := range selectedVideos {
 			wg.Add(1)
 			sem <- struct{}{}
 			go func(videoLink string) {
 				defer wg.Done()
 				defer func() { <-sem }()
-				
+
 				// parse video id from link
 				re := regexp.MustCompile(`(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/|.*embed\/|v\/|shorts\/))([\w-]{11})`)
 				matches := re.FindStringSubmatch(videoLink)
@@ -93,7 +93,7 @@ var randomizeCmd = &cobra.Command{
 
 				ytUploader := uploader.New(l, cfg)
 				ytUploader.Authenticate()
-				
+
 				if !ed.Failed {
 					title := ed.GetVideoTitle()
 					filename := ed.GenerateOutputFilename(title)

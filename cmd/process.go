@@ -4,16 +4,18 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/spf13/cobra"
 	"gozart/pkg/config"
 	"gozart/pkg/downloader"
 	"gozart/pkg/editor"
 	"gozart/pkg/logger"
 	"gozart/pkg/uploader"
+
+	"github.com/spf13/cobra"
 )
 
 var (
 	uploadFlag      bool
+	aiSeoFlag       bool
 	concurrencyFlag int
 )
 
@@ -27,6 +29,7 @@ var processCmd = &cobra.Command{
 		cfg := config.New(l)
 		cfg.CheckForFfmpeg()
 		cfg.CheckForYtdlp()
+		cfg.ValidateLegacyInputs()
 
 		var ytUploader *uploader.YouTubeUploader
 		if uploadFlag {
@@ -85,6 +88,7 @@ var processCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(processCmd)
+	processCmd.Flags().BoolVarP(&aiSeoFlag, "seo", "s", false, "Use AI for generating SEO for the video")
 	processCmd.Flags().BoolVarP(&uploadFlag, "upload", "u", false, "Actually upload the video to YouTube")
 	processCmd.Flags().IntVarP(&concurrencyFlag, "concurrency", "c", 2, "Number of videos to process concurrently")
 }

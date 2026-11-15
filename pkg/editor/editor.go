@@ -67,7 +67,7 @@ func (e *VideoEditor) GetVideoTitle() string {
 func (e *VideoEditor) GenerateOutputFilename(ytTitle string) string {
 	re := regexp.MustCompile(`[^a-zA-Z0-9_]`)
 	sanitizedTitle := re.ReplaceAllString(ytTitle, " ")
-	
+
 	duration := e.ConfigLoader.GetFinalVideoDuration()
 	hours := math.Round(float64(duration) / 3600.0)
 	suffix := fmt.Sprintf(" %.0f Hour looped", hours)
@@ -95,7 +95,7 @@ func (e *VideoEditor) runFfmpeg(args []string, step string) {
 	if e.Failed {
 		return
 	}
-	
+
 	cmd := exec.Command(e.ConfigLoader.ConfigData.FfmpegPath, args...)
 	if err := cmd.Run(); err != nil {
 		e.Logger.LogFileWithStdout(fmt.Sprintf("Failed %s", step), logger.Error)
@@ -132,7 +132,7 @@ func (e *VideoEditor) ExtractAudioFromVideo() {
 	if e.AlreadyAsMp4 {
 		filename = "input.mp4"
 	}
-	
+
 	inputFile := filepath.Join(savedDir, filename)
 	audioFile := filepath.Join(savedDir, "audio.mp3")
 
@@ -173,7 +173,7 @@ func (e *VideoEditor) GetVideoDuration() {
 	finalOutput := filepath.Join(savedDir, "final_output.mp4")
 
 	e.Logger.LogFileWithStdout("Calculating video duration.", logger.Info)
-	
+
 	cmd := exec.Command(e.ConfigLoader.GetFfprobePath(), "-v", "quiet", "-show_entries", "format=duration", "-of", "csv=p=0", finalOutput)
 	out, err := cmd.Output()
 	if err != nil {
@@ -181,7 +181,7 @@ func (e *VideoEditor) GetVideoDuration() {
 		e.Logger.LogFileWithStdout("Failed Calculating video duration", logger.Error)
 		return
 	}
-	
+
 	durationStr := strings.TrimSpace(string(out))
 	if f, err := strconv.ParseFloat(durationStr, 64); err == nil {
 		e.FinalOutputVideoDuration = int(f)
@@ -219,12 +219,11 @@ func (e *VideoEditor) GenerateConcatDemuxerFile() {
 	defer file.Close()
 
 	finalOutputPath := filepath.Join(e.ConfigLoader.Pwd, savedDir, "final_output.mp4")
-	
-	// escape single quotes in path if necessary
+
 	finalOutputPath = strings.ReplaceAll(finalOutputPath, "'", "'\\''")
 
-	for i := 0; i < repetitions; i++ {
-		file.WriteString(fmt.Sprintf("file '%s'\n", finalOutputPath))
+	for range repetitions {
+		fmt.Fprintf(file, "file '%s'\n", finalOutputPath)
 	}
 }
 
@@ -240,7 +239,7 @@ func (e *VideoEditor) RenderFinalOutputVideo() string {
 	outputDir := filepath.Join(e.ConfigLoader.ConfigData.OutputDirectory, e.VideoID)
 
 	os.MkdirAll(outputDir, 0755)
-	
+
 	finalRender := filepath.Join(outputDir, filename+".mp4")
 	if _, err := os.Stat(finalRender); err == nil {
 		e.Logger.LogFileWithStdout("Output was already created, Skipping this step !", logger.Info)
@@ -256,9 +255,9 @@ func (e *VideoEditor) RenderFinalOutputVideo() string {
 		"-c", "copy",
 		finalRender,
 	}, "Rendering output file")
-	
+
 	if !e.Failed {
-		e.Logger.LogFileWithStdout(fmt.Sprintf("Render Time Took : %v", time.Since(start)), logger.Info)
+		e.Logger.LogFileWithStdout(fmt.Sprintf("Render Time Took : %.2v", time.Since(start)), logger.Info)
 	}
 
 	return finalRender

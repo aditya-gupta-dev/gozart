@@ -1,0 +1,325 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div>
+  <!-- Header with Job Info -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+        <a href="/" style="color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
+          &larr; Back to Dashboard
+        </a>
+        <span style="color: var(--border);">|</span>
+        <span style="font-family: monospace; font-size: 0.85rem; color: #60a5fa;">{{.Job.ID}}</span>
+      </div>
+      <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.025em;">{{.Job.Topic}}</h1>
+      <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+        <span>Region: <strong style="color: var(--text-main);">{{.Job.CountryCode}}</strong></span>
+        <span>&bull;</span>
+        <span>Format: <strong style="color: var(--text-main);">{{.Job.Format}}</strong></span>
+        <span>&bull;</span>
+        <span>Created: {{.Job.CreatedAt.Format "Jan 02, 15:04:05 MST"}}</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 0.75rem; align-items: center;">
+      {{if eq .Job.Status "RUNNING"}}
+      <span class="badge badge-running">Running {{.Job.ProgressPct}}%</span>
+      {{else if eq .Job.Status "COMPLETED"}}
+      <span class="badge badge-completed">Completed</span>
+      {{else if eq .Job.Status "FAILED"}}
+      <span class="badge badge-failed">Failed</span>
+      {{else}}
+      <span class="badge badge-queued">{{.Job.Status}}</span>
+      {{end}}
+
+      {{if .Job.YouTubeVideoID}}
+      <a href="https://youtube.com/watch?v={{.Job.YouTubeVideoID}}" target="_blank" class="btn btn-primary" style="background: #ef4444; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);">
+        Watch on YouTube
+      </a>
+      {{end}}
+    </div>
+  </div>
+
+  <!-- Stage Stepper -->
+  <div class="stepper-container">
+    <div class="step-item">
+      <div class="step-node {{if ge .Job.ProgressPct 15}}done{{else}}active{{end}}">1</div>
+      <span class="step-label">Research</span>
+    </div>
+    <div class="step-item">
+      <div class="step-node {{if ge .Job.ProgressPct 35}}done{{else if ge .Job.ProgressPct 15}}active{{end}}">2</div>
+      <span class="step-label">Sentiment</span>
+    </div>
+    <div class="step-item">
+      <div class="step-node {{if ge .Job.ProgressPct 50}}done{{else if ge .Job.ProgressPct 35}}active{{end}}">3</div>
+      <span class="step-label">Script</span>
+    </div>
+    <div class="step-item">
+      <div class="step-node {{if ge .Job.ProgressPct 80}}done{{else if ge .Job.ProgressPct 50}}active{{end}}">4</div>
+      <span class="step-label">4-Track Gen</span>
+    </div>
+    <div class="step-item">
+      <div class="step-node {{if ge .Job.ProgressPct 95}}done{{else if ge .Job.ProgressPct 80}}active{{end}}">5</div>
+      <span class="step-label">Composite</span>
+    </div>
+    <div class="step-item">
+      <div class="step-node {{if ge .Job.ProgressPct 100}}done{{else if ge .Job.ProgressPct 95}}active{{end}}">6</div>
+      <span class="step-label">Publish</span>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-container">
+    <button class="tab-btn active" onclick="switchTab('terminal', this)">Live Logs</button>
+    <button class="tab-btn" onclick="switchTab('preview', this)">Preview & Publish</button>
+    <button class="tab-btn" onclick="switchTab('script', this)">Script Spec</button>
+    <button class="tab-btn" onclick="switchTab('sentiment', this)">Audience Sentiment</button>
+    <button class="tab-btn" onclick="switchTab('seo', this)">SEO & Metadata</button>
+  </div>
+
+  <!-- Tab Content: Live Logs -->
+  <div id="tab-terminal" class="tab-content">
+    <div class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-dot dot-red"></div>
+        <div class="terminal-dot dot-yellow"></div>
+        <div class="terminal-dot dot-green"></div>
+        <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 0.5rem;">SSE Live Pipeline Stream &bull; job-{{.Job.ID}}</span>
+      </div>
+      <div id="terminal-body" class="terminal-body">
+        {{range .Logs}}
+        <div class="log-line log-{{.Level}}">
+          <span style="color: var(--text-muted); font-size: 0.75rem;">[{{.CreatedAt.Format "15:04:05"}}]</span>
+          <strong>[{{.Level}}]</strong> {{.Message}}
+        </div>
+        {{end}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Content: Preview & Publish -->
+  <div id="tab-preview" class="tab-content" style="display: none;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+      <div class="table-card" style="margin: 0; padding: 1.5rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">Video Preview</h3>
+        {{if .Job.VideoPath}}
+        <video controls style="width: 100%; max-height: 480px; border-radius: 0.5rem; background: #000;" src="/media/video/{{.Job.ID}}"></video>
+        {{else}}
+        <div style="height: 320px; background: #090d16; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+          Video render is currently generating...
+        </div>
+        {{end}}
+      </div>
+
+      <div class="table-card" style="margin: 0; padding: 1.5rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">Generated Thumbnail</h3>
+        {{if .Job.ThumbnailPath}}
+        <img src="/media/thumb/{{.Job.ID}}" alt="Generated Thumbnail" style="width: 100%; border-radius: 0.5rem; border: 1px solid var(--border);">
+        {{else}}
+        <div style="height: 220px; background: #090d16; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+          Thumbnail is currently generating...
+        </div>
+        {{end}}
+
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+          {{if .Job.YouTubeVideoID}}
+          <div style="padding: 1rem; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 0.5rem;">
+            <strong style="color: #34d399;">Published!</strong> YouTube Video ID: <code>{{.Job.YouTubeVideoID}}</code>
+          </div>
+          {{else if .Job.VideoPath}}
+          <form action="/api/jobs/{{.Job.ID}}/publish" method="POST">
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label class="form-label" style="font-size: 0.8rem;">YouTube Video Title</label>
+              <input type="text" name="title" class="form-input" value="{{if .SEO}}{{.SEO.ChosenTitle}}{{else}}{{.Job.Topic}}{{end}}" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label class="form-label" style="font-size: 0.8rem;">Video Description & Chapters</label>
+              <textarea name="description" class="form-textarea" rows="4">{{if .SEO}}{{.SEO.Description}}{{end}}</textarea>
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" style="font-size: 0.8rem;">Discovery Tags (comma-separated)</label>
+              <input type="text" name="tags" class="form-input" value="{{if .SEO}}{{range $i, $t := .SEO.Tags}}{{if $i}}, {{end}}{{$t}}{{end}}{{end}}">
+            </div>
+            <button type="submit" class="btn btn-success" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem;">
+              🚀 Publish to YouTube
+            </button>
+          </form>
+          {{else}}
+          <button class="btn btn-secondary" disabled style="width: 100%; justify-content: center; opacity: 0.5; cursor: not-allowed;">
+            Awaiting Video Completion
+          </button>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Content: Script Spec -->
+  <div id="tab-script" class="tab-content" style="display: none;">
+    <div class="table-card" style="margin: 0; padding: 1.5rem;">
+      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">Scene-by-Scene Script Specification</h3>
+      {{if .Script}}
+      <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 1rem; border-radius: 0.25rem; margin-bottom: 1.5rem;">
+        <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #60a5fa;">Hook &bull; {{.Script.Hook.Formula}} ({{.Script.Hook.DurationSec}}s)</span>
+        <div style="font-size: 1.1rem; font-weight: 600; margin: 0.35rem 0;">"{{.Script.Hook.Voiceover}}"</div>
+        <div style="font-size: 0.85rem; color: var(--text-muted);">Visual: {{.Script.Hook.VisualDirection}}</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {{range .Script.Scenes}}
+        <div style="background: #090d16; border: 1px solid var(--border); padding: 1.25rem; border-radius: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+            <span style="font-weight: 700; color: #f59e0b;">Scene {{.SceneID}}: {{.Type}}</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">{{.DurationSec}}s &bull; Cue: {{.SFXCue}}</span>
+          </div>
+          <p style="font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem;">"{{.Voiceover}}"</p>
+          <div style="font-size: 0.85rem; color: var(--text-muted); background: #131b2e; padding: 0.5rem 0.75rem; border-radius: 0.25rem;">
+            <strong>Visual Direction:</strong> {{.VisualDescription}}
+          </div>
+        </div>
+        {{end}}
+      </div>
+
+      <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 1rem; border-radius: 0.25rem; margin-top: 1.5rem;">
+        <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #34d399;">CTA ({{.Script.CTA.DurationSec}}s)</span>
+        <div style="font-size: 1.05rem; font-weight: 600; margin: 0.35rem 0;">"{{.Script.CTA.Voiceover}}"</div>
+        <div style="font-size: 0.85rem; color: var(--text-muted);">Visual: {{.Script.CTA.VisualDescription}}</div>
+      </div>
+      {{else}}
+      <p style="color: var(--text-muted);">Script is currently generating or not yet available.</p>
+      {{end}}
+    </div>
+  </div>
+
+  <!-- Tab Content: Audience Sentiment -->
+  <div id="tab-sentiment" class="tab-content" style="display: none;">
+    <div class="table-card" style="margin: 0; padding: 1.5rem;">
+      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.5rem;">Audience Sentiment & Curiosity Gaps</h3>
+      {{if .Sentiment}}
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div style="background: #090d16; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid var(--border);">
+          <h4 style="color: #34d399; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Positive Triggers</h4>
+          <ul style="padding-left: 1.25rem; font-size: 0.85rem; color: var(--text-muted);">
+            {{range .Sentiment.AudienceSentiment.PositiveTriggers}}
+            <li style="margin-bottom: 0.35rem;">{{.}}</li>
+            {{end}}
+          </ul>
+        </div>
+
+        <div style="background: #090d16; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid var(--border);">
+          <h4 style="color: #f87171; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Negative Friction</h4>
+          <ul style="padding-left: 1.25rem; font-size: 0.85rem; color: var(--text-muted);">
+            {{range .Sentiment.AudienceSentiment.NegativeFriction}}
+            <li style="margin-bottom: 0.35rem;">{{.}}</li>
+            {{end}}
+          </ul>
+        </div>
+
+        <div style="background: #090d16; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid var(--border); grid-column: span 2;">
+          <h4 style="color: #60a5fa; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Unanswered Curiosity Questions</h4>
+          <ul style="padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-main);">
+            {{range .Sentiment.AudienceSentiment.UnansweredQuestions}}
+            <li style="margin-bottom: 0.5rem; font-weight: 500;">{{.}}</li>
+            {{end}}
+          </ul>
+        </div>
+      </div>
+      {{else}}
+      <p style="color: var(--text-muted);">Sentiment data is currently extracting...</p>
+      {{end}}
+    </div>
+  </div>
+
+  <!-- Tab Content: SEO -->
+  <div id="tab-seo" class="tab-content" style="display: none;">
+    <div class="table-card" style="margin: 0; padding: 1.5rem;">
+      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.5rem;">YouTube SEO Optimization</h3>
+      {{if .SEO}}
+      <div class="form-group">
+        <label class="form-label">Chosen Title</label>
+        <input type="text" class="form-input" value="{{.SEO.ChosenTitle}}" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Title Candidates Tested</label>
+        <ul style="padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-muted);">
+          {{range .SEO.TitleCandidates}}
+          <li style="margin-bottom: 0.35rem;">{{.}}</li>
+          {{end}}
+        </ul>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description & Chapters</label>
+        <textarea class="form-textarea" rows="6" readonly>{{.SEO.Description}}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags ({{len .SEO.Tags}})</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+          {{range .SEO.Tags}}
+          <span class="badge" style="background: #090d16; border: 1px solid var(--border); text-transform: none;">{{.}}</span>
+          {{end}}
+        </div>
+      </div>
+      {{else}}
+      <p style="color: var(--text-muted);">SEO metadata is generating...</p>
+      {{end}}
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(tabName, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tabName).style.display = 'block';
+  btn.classList.add('active');
+}
+
+// Setup Server-Sent Events (SSE) live streaming
+(function() {
+  const jobID = "{{.Job.ID}}";
+  const terminal = document.getElementById("terminal-body");
+  if (!window.EventSource) return;
+
+  const eventSource = new EventSource("/api/jobs/" + jobID + "/stream");
+  eventSource.onmessage = function(e) {
+    try {
+      const data = JSON.parse(e.data);
+      if (data.message) {
+        const line = document.createElement("div");
+        line.className = "log-line log-" + (data.level || "INFO");
+        line.innerHTML = '<span style="color: var(--text-muted); font-size: 0.75rem;">[' + (data.time || '') + ']</span> ' +
+                         '<strong>[' + (data.level || 'INFO') + ']</strong> ' + (data.message || '');
+        terminal.appendChild(line);
+        terminal.scrollTop = terminal.scrollHeight;
+      }
+
+      if (data.progress_pct && data.progress_pct > 0) {
+        const badge = document.querySelector('.badge-running');
+        if (badge) {
+          badge.innerText = 'Running ' + data.progress_pct + '%';
+        }
+        const nodes = document.querySelectorAll('.step-node');
+        const thresholds = [15, 35, 50, 80, 95, 100];
+        thresholds.forEach((th, idx) => {
+          if (nodes[idx]) {
+            if (data.progress_pct >= th) {
+              nodes[idx].className = 'step-node done';
+            } else if (idx === 0 || data.progress_pct >= thresholds[idx-1]) {
+              nodes[idx].className = 'step-node active';
+            }
+          }
+        });
+      }
+
+      if (data.current_step === "COMPOSITED" && data.progress_pct >= 95) {
+        setTimeout(function() {
+          window.location.reload();
+        }, 1500);
+      }
+    } catch(err) {
+      console.error("SSE parse error", err);
+    }
+  };
+})();
+</script>
+{{end}}

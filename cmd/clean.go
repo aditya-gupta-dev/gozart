@@ -47,8 +47,10 @@ var cleanCmd = &cobra.Command{
 				l.LogFileWithStdout("Failed to get homedir for user", logger.Fatal)
 				return
 			}
-			if err := os.RemoveAll(homeDir + ".cache/gozart"); err == nil {
+			if err := os.RemoveAll(filepath.Join(homeDir, ".cache", "gozart")); err == nil {
 				l.LogFileWithStdout("Removed cache folder", logger.Info)
+			} else {
+				l.LogFileWithStdout("Failed to remove cache folder: "+err.Error(), logger.Error)
 			}
 		}
 

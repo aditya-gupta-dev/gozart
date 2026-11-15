@@ -78,10 +78,6 @@ func getClient(config *oauth2.Config, tokenFile string, l *logger.Logger) *http.
 }
 
 func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
-	// Bind the loopback IP literally rather than the hostname "localhost".
-	// "localhost" resolves to both 127.0.0.1 and ::1, and Go listens on only
-	// one of them; the browser may then try the other family and get a
-	// connection refused ("cannot access localhost"). Google also recommends
 	// 127.0.0.1 over localhost for loopback redirect URIs.
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -152,8 +148,6 @@ func saveToken(path string, token *oauth2.Token, l *logger.Logger) {
 	json.NewEncoder(f).Encode(token)
 }
 
-
-
 func (u *YouTubeUploader) UploadVideo(videoFile, title, description string, tags []string) string {
 	if u.Service == nil {
 		u.logger.LogFileWithStdout("Not authenticated. Call authenticate() first.", logger.Fatal)
@@ -183,7 +177,7 @@ func (u *YouTubeUploader) UploadVideo(videoFile, title, description string, tags
 	}
 
 	call := u.Service.Videos.Insert([]string{"snippet", "status"}, upload)
-	
+
 	bar := u.ProgressContainer.AddBar(stat.Size(),
 		mpb.PrependDecorators(
 			decor.Name(title, decor.WCSyncSpaceR),

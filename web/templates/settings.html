@@ -1,0 +1,143 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div style="max-width: 800px; margin: 0 auto;">
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.025em;">Engine Settings & Credentials</h1>
+    <p style="color: var(--text-muted); margin-top: 0.25rem;">Configure API connections, YouTube OAuth credentials, and neural models.</p>
+  </div>
+
+  {{if .Saved}}
+  <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 0.5rem; color: #34d399; font-weight: 600;">
+    ✓ Settings saved successfully to config.json!
+  </div>
+  {{end}}
+
+  {{if eq .AuthMsg "client_secrets_missing"}}
+  <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 0.5rem; color: #f87171;">
+    ⚠ <strong>client_secrets.json not found!</strong> Download your OAuth 2.0 client secrets file from the Google Cloud Console and place it at <code>client_secrets.json</code> in the Gozart directory.
+  </div>
+  {{else if eq .AuthMsg "token_already_active"}}
+  <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; border-radius: 0.5rem; color: #60a5fa;">
+    ℹ <strong>OAuth Token is already active!</strong> Your credentials in <code>token.json</code> are valid and ready to publish videos.
+  </div>
+  {{else if eq .AuthMsg "reauth_required"}}
+  <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; border-radius: 0.5rem; color: #fbbf24;">
+    ⚡ Run <code>gozart process</code> in terminal or provide <code>token.json</code> to complete the local web authorization handshake.
+  </div>
+  {{end}}
+
+  <!-- YouTube OAuth Card -->
+  <div class="form-card" style="margin: 0 0 2rem 0; max-width: 100%;">
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;">YouTube OAuth2 Authentication</h3>
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: #090d16; border: 1px solid var(--border); border-radius: 0.5rem;">
+      <div>
+        <div style="font-weight: 600;">
+          Status:
+          {{if .HasToken}}
+          <span style="color: #34d399;">✓ Authenticated (token.json active)</span>
+          {{else}}
+          <span style="color: #f87171;">✗ Not Authenticated (token.json missing)</span>
+          {{end}}
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+          Client Secrets:
+          {{if .HasSecrets}}
+          <span style="color: #34d399;">Present ({{.Config.YouTube.ClientSecretsPath}})</span>
+          {{else}}
+          <span style="color: #f87171;">Missing ({{.Config.YouTube.ClientSecretsPath}})</span>
+          {{end}}
+        </div>
+      </div>
+      <a href="/api/auth/youtube" class="btn btn-secondary">
+        Re-authorize YouTube
+      </a>
+    </div>
+  </div>
+
+  <!-- Runtime Configuration Form -->
+  <div class="form-card" style="margin: 0; max-width: 100%;">
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;">Runtime Configuration</h3>
+    
+    <form action="/settings/save" method="POST">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="ai_provider">AI Provider</label>
+          <select id="ai_provider" name="ai_provider" class="form-select">
+            <option value="ollama" {{if eq .Config.AI.Provider "ollama"}}selected{{end}}>Local Ollama</option>
+            <option value="openai" {{if eq .Config.AI.Provider "openai"}}selected{{end}}>OpenAI / Cloud Endpoint</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ollama_base_url">Ollama Base URL</label>
+          <input type="text" id="ollama_base_url" name="ollama_base_url" class="form-input" value="{{.Config.AI.OllamaBaseURL}}">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="agent_model">Active Agent Model</label>
+          <input type="text" id="agent_model" name="agent_model" class="form-input" value="{{.Config.AI.AgentModel}}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="fast_model">Fast Model (Sentiment/SEO)</label>
+          <input type="text" id="fast_model" name="fast_model" class="form-input" value="{{.Config.AI.FastModel}}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="ai_api_key">AI Cloud API Key (OpenAI / Claude / Gemini Fallback)</label>
+        <input type="password" id="ai_api_key" name="ai_api_key" class="form-input" value="{{.Config.AI.APIKey}}" placeholder="sk-...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="youtube_api_key">YouTube Data API v3 Key</label>
+        <input type="password" id="youtube_api_key" name="youtube_api_key" class="form-input" value="{{.Config.YouTube.APIKey}}" placeholder="AIza...">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="tts_engine">TTS Engine</label>
+          <select id="tts_engine" name="tts_engine" class="form-select">
+            <option value="kokoro" {{if eq .Config.Audio.TTSEngine "kokoro"}}selected{{end}}>Kokoro-82M (Local)</option>
+            <option value="edge-tts" {{if eq .Config.Audio.TTSEngine "edge-tts"}}selected{{end}}>Edge-TTS (Zero-GPU Cloud Fallback)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="voice">Voice Profile</label>
+          <input type="text" id="voice" name="voice" class="form-input" value="{{.Config.Audio.Voice}}">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="media_engine">Media Video Engine</label>
+          <select id="media_engine" name="media_engine" class="form-select">
+            <option value="remotion" {{if eq .Config.Media.Engine "remotion"}}selected{{end}}>Remotion (React/TypeScript)</option>
+            <option value="manim" {{if eq .Config.Media.Engine "manim"}}selected{{end}}>Manim CE (Python)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="deepfilter_path">DeepFilterNet Executable Path</label>
+          <input type="text" id="deepfilter_path" name="deepfilter_path" class="form-input" value="{{.Config.Audio.DeepFilterPath}}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="db_path">SQLite Database File Path</label>
+        <input type="text" id="db_path" name="db_path" class="form-input" value="{{.Config.Storage.DBPath}}">
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.75rem;">
+          Save Settings
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{{end}}

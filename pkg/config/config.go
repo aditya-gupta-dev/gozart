@@ -11,7 +11,54 @@ import (
 	"gozart/pkg/logger"
 )
 
+type ServerConfig struct {
+	Port int    `json:"port"`
+	Host string `json:"host"`
+}
+
+type AIConfig struct {
+	Provider      string `json:"provider"`
+	OllamaBaseURL string `json:"ollama_base_url"`
+	AgentModel    string `json:"agent_model"`
+	FastModel     string `json:"fast_model"`
+	APIKey        string `json:"api_key"`
+}
+
+type YouTubeConfig struct {
+	APIKey            string `json:"api_key"`
+	ClientSecretsPath string `json:"client_secrets_path"`
+	TokenCachePath    string `json:"token_cache_path"`
+}
+
+type AudioConfig struct {
+	TTSEngine         string `json:"tts_engine"`
+	Voice             string `json:"voice"`
+	DeepFilterEnabled bool   `json:"deepfilter_enabled"`
+	DeepFilterPath    string `json:"deepfilter_path"`
+}
+
+type MediaConfig struct {
+	Engine            string `json:"engine"`
+	NodeBinary        string `json:"node_binary"`
+	MaxHealingRetries int    `json:"max_healing_retries"`
+}
+
+type StorageConfig struct {
+	DBPath    string `json:"db_path"`
+	WorkDir   string `json:"workdir"`
+	OutputDir string `json:"output_dir"`
+}
+
 type ConfigParams struct {
+	// New structured configuration
+	Server  ServerConfig  `json:"server"`
+	AI      AIConfig      `json:"ai"`
+	YouTube YouTubeConfig `json:"youtube"`
+	Audio   AudioConfig   `json:"audio"`
+	Media   MediaConfig   `json:"media"`
+	Storage StorageConfig `json:"storage"`
+
+	// Legacy flat fields preserved for backward compatibility
 	FfmpegPath          string `json:"ffmpegPath"`
 	YtdlpPath           string `json:"ytdlpPath"`
 	FinalVideoDuration  string `json:"final-video-duration"`
@@ -21,9 +68,10 @@ type ConfigParams struct {
 	LinksFilePath       string `json:"links-file-path"`
 	DescriptionFilePath string `json:"description-file-path"`
 	TagsFilePath        string `json:"tags-file-path"`
+	AIAuthToken         string `json:"ai-auth-token"`
+	ModelTag            string `json:"model-tag"`
 }
 
-// Fallbacks used when no description/tags file is configured or readable.
 const defaultDescription = "Open for promoting all kinds of music. Hit me up, Contact details provided in the channel's about page"
 
 var defaultTags = []string{"shorts", "music", "looped"}
@@ -40,26 +88,95 @@ func New(l *logger.Logger) *ConfigLoader {
 		l.LogFileWithStdout("Failed to get working directory", logger.Fatal)
 	}
 
-	// Go up one directory if run inside gozart, since config.json is in parent dir
-	// For simplicity, let's assume config.json is in the current working directory where the CLI is run.
 	configPath := filepath.Join(pwd, "config.json")
 	l.LogFileWithStdout("Searching config.json at "+configPath, logger.Info)
 
+	var data ConfigParams
 	file, err := os.ReadFile(configPath)
 	if err != nil {
-		l.LogFileWithStdout("Not found config.json: "+err.Error(), logger.Fatal)
+		l.LogFileWithStdout("config.json not found or not readable: "+err.Error()+", using defaults", logger.Warn)
+	} else {
+		if err := json.Unmarshal(file, &data); err != nil {
+			l.LogFileWithStdout("Failed to parse config.json: "+err.Error(), logger.Fatal)
+		}
+		l.LogFileWithStdout("Loaded config.json", logger.Info)
 	}
 
-	var data ConfigParams
-	if err := json.Unmarshal(file, &data); err != nil {
-		l.LogFileWithStdout("Failed to parse config.json: "+err.Error(), logger.Fatal)
+	// Apply defaults and bridge structured <-> legacy fields
+	if data.Server.Port == 0 {
+		data.Server.Port = 8080
+	}
+	if data.Server.Host == "" {
+		data.Server.Host = "0.0.0.0"
 	}
 
-	l.LogFileWithStdout("Found config.json", logger.Info)
+	if data.AI.Provider == "" {
+		data.AI.Provider = "ollama"
+	}
+	if data.AI.OllamaBaseURL == "" {
+		data.AI.OllamaBaseURL = "http://localhost:11434"
+	}
+	if data.AI.AgentModel == "" {
+		data.AI.AgentModel = "qwen2.5:32b"
+	}
+	if data.AI.FastModel == "" {
+		data.AI.FastModel = "qwen2.5:7b"
+	}
 
+	// Bridge YouTube API key
+	if data.YouTube.APIKey == "" && data.YoutubeAPIKey != "" {
+		data.YouTube.APIKey = data.YoutubeAPIKey
+	} else if data.YoutubeAPIKey == "" && data.YouTube.APIKey != "" {
+		data.YoutubeAPIKey = data.YouTube.APIKey
+	}
+	if data.YouTube.ClientSecretsPath == "" {
+		data.YouTube.ClientSecretsPath = "client_secrets.json"
+	}
+	if data.YouTube.TokenCachePath == "" {
+		data.YouTube.TokenCachePath = "token.json"
+	}
+
+	// Audio defaults
+	if data.Audio.TTSEngine == "" {
+		data.Audio.TTSEngine = "kokoro"
+	}
+	if data.Audio.Voice == "" {
+		data.Audio.Voice = "af_bella"
+	}
+	if data.Audio.DeepFilterPath == "" {
+		data.Audio.DeepFilterPath = "deep-filter"
+	}
+
+	// Media defaults
+	if data.Media.Engine == "" {
+		data.Media.Engine = "remotion"
+	}
+	if data.Media.NodeBinary == "" {
+		data.Media.NodeBinary = "node"
+	}
+	if data.Media.MaxHealingRetries <= 0 {
+		data.Media.MaxHealingRetries = 3
+	}
+
+	// Storage defaults
+	if data.Storage.DBPath == "" {
+		data.Storage.DBPath = "gozart.db"
+	}
+	if data.Storage.WorkDir == "" {
+		data.Storage.WorkDir = "workspace"
+	}
+	if data.Storage.OutputDir == "" {
+		if data.OutputDirectory != "" {
+			data.Storage.OutputDir = data.OutputDirectory
+		} else {
+			data.Storage.OutputDir = "output"
+		}
+	}
 	if data.OutputDirectory == "" {
-		data.OutputDirectory = "output"
+		data.OutputDirectory = data.Storage.OutputDir
 	}
+
+	// Legacy defaults
 	if data.LinksFilePath == "" {
 		data.LinksFilePath = "links.txt"
 	}
@@ -76,53 +193,41 @@ func New(l *logger.Logger) *ConfigLoader {
 		data.FinalVideoDuration = "30"
 	}
 
-	// Validate paths
-	if _, err := os.Stat(data.AssetVideoPath); os.IsNotExist(err) {
-		l.LogFileWithStdout("Asset video file not found.", logger.Fatal)
-	} else {
-		l.LogFileWithStdout("Asset video file found.", logger.Info)
+	// Ensure required directories exist
+	if err := os.MkdirAll(data.Storage.OutputDir, 0755); err != nil {
+		l.LogFileWithStdout("Failed to create output directory: "+err.Error(), logger.Warn)
 	}
-
-	if _, err := os.Stat(data.OutputDirectory); os.IsNotExist(err) {
-		l.LogFileWithStdout("Output directory doesn't exist, Creating one..", logger.Error)
-		os.MkdirAll(data.OutputDirectory, 0755)
-		l.LogFileWithStdout("Created Output directory", logger.Info)
-	} else {
-		l.LogFileWithStdout("Output directory exists", logger.Info)
-	}
-
-	if _, err := os.Stat(data.LinksFilePath); os.IsNotExist(err) {
-		l.LogFileWithStdout("Links file not found", logger.Fatal)
-	} else {
-		l.LogFileWithStdout("Links File exists", logger.Info)
-	}
-
-	if data.YoutubeAPIKey == "" {
-		l.LogFileWithStdout("Not Found Api key, Please paste a youtube api key.", logger.Fatal)
-	}
-
-	// Description/tags files are optional. Warn (non-fatal) if a path is set
-	// but missing, so uploads silently falling back to defaults is visible.
-	if data.DescriptionFilePath != "" {
-		if _, err := os.Stat(data.DescriptionFilePath); os.IsNotExist(err) {
-			l.LogFileWithStdout("Description file not found, will use default description.", logger.Error)
-		} else {
-			l.LogFileWithStdout("Description file found.", logger.Info)
-		}
-	}
-
-	if data.TagsFilePath != "" {
-		if _, err := os.Stat(data.TagsFilePath); os.IsNotExist(err) {
-			l.LogFileWithStdout("Tags file not found, will use default tags.", logger.Error)
-		} else {
-			l.LogFileWithStdout("Tags file found.", logger.Info)
-		}
+	if err := os.MkdirAll(data.Storage.WorkDir, 0755); err != nil {
+		l.LogFileWithStdout("Failed to create work directory: "+err.Error(), logger.Warn)
 	}
 
 	return &ConfigLoader{
 		Pwd:        pwd,
 		ConfigData: data,
 		Logger:     l,
+	}
+}
+
+// SaveConfig writes the current configuration data to config.json in Pwd.
+func (c *ConfigLoader) SaveConfig() error {
+	configPath := filepath.Join(c.Pwd, "config.json")
+	data, err := json.MarshalIndent(c.ConfigData, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(configPath, data, 0644)
+}
+
+// ValidateLegacyInputs verifies legacy video asset and link files exist for loop processing.
+func (c *ConfigLoader) ValidateLegacyInputs() {
+	if _, err := os.Stat(c.ConfigData.AssetVideoPath); os.IsNotExist(err) {
+		c.Logger.LogFileWithStdout("Asset video file not found: "+c.ConfigData.AssetVideoPath, logger.Fatal)
+	}
+	if _, err := os.Stat(c.ConfigData.LinksFilePath); os.IsNotExist(err) {
+		c.Logger.LogFileWithStdout("Links file not found: "+c.ConfigData.LinksFilePath, logger.Fatal)
+	}
+	if c.ConfigData.YoutubeAPIKey == "" {
+		c.Logger.LogFileWithStdout("YouTube API key not found in config", logger.Fatal)
 	}
 }
 
@@ -160,9 +265,6 @@ func (c *ConfigLoader) CheckForYtdlp() {
 	c.Logger.LogFileWithStdout("yt-dlp is installed", logger.Info)
 }
 
-// GetDescription returns the video description read from the file configured
-// via "description-file-path". If the path is unset, the file is unreadable,
-// or its contents are empty, it falls back to the default description.
 func (c *ConfigLoader) GetDescription() string {
 	path := c.ConfigData.DescriptionFilePath
 	if path == "" {
@@ -183,10 +285,6 @@ func (c *ConfigLoader) GetDescription() string {
 	return desc
 }
 
-// GetTags returns the video tags read from the file configured via
-// "tags-file-path". Tags may be separated by newlines and/or commas. If the
-// path is unset, the file is unreadable, or no tags are found, it falls back
-// to the default tags.
 func (c *ConfigLoader) GetTags() []string {
 	path := c.ConfigData.TagsFilePath
 	if path == "" {

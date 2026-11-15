@@ -3,6 +3,7 @@ package downloader
 import (
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 
 	"gozart/pkg/config"
@@ -68,14 +69,8 @@ func (d *VideoDownloader) DownloadVideoUsingPkg(link string) string {
 		return ""
 	}
 
-	savePath := d.tempDir + "/" + videoID + "/input.webm"
-	altPath := d.tempDir + "/" + videoID + "/input.mp4"
-
-	if _, err := os.Stat(savePath); err == nil {
-		d.logger.LogFileWithStdout("downloaded video is already present in files. Skipping Downloading...", logger.Info)
-		return videoID
-	}
-	if _, err := os.Stat(altPath); err == nil {
+	tempDirID := filepath.Join(d.tempDir, videoID)
+	if hasDownloadedVideo(tempDirID) {
 		d.logger.LogFileWithStdout("downloaded video is already present in files. Skipping Downloading...", logger.Info)
 		return videoID
 	}
@@ -86,11 +81,19 @@ func (d *VideoDownloader) DownloadVideoUsingPkg(link string) string {
 		return videoID
 	}
 
-	cacheDir := homeDir + ".cache/gozart/" + videoID
-	if _, err := os.Stat(cacheDir); err == nil {
+	cacheRoot := filepath.Join(homeDir, ".cache", "gozart")
+	cacheDir := filepath.Join(cacheRoot, videoID)
+	if hasDownloadedVideo(cacheDir) {
 		d.logger.LogFileWithStdout("downloaded video found in cache. Copying to files...", logger.Info)
-		exec.Command("cp", "-r", cacheDir, d.tempDir).Run()
-		return videoID
+		if err := copyVideoDirectory(cacheDir, tempDirID); err != nil {
+			d.logger.LogFileWithStdout("Failed to restore cached video: "+err.Error(), logger.Error)
+			return ""
+		}
+		if hasDownloadedVideo(tempDirID) {
+			return videoID
+		}
+		d.logger.LogFileWithStdout("Restored cache contains no usable video", logger.Error)
+		return ""
 	}
 
 	d.logger.LogFileWithStdout("Started Downloading "+link, logger.Info)
@@ -100,12 +103,34 @@ func (d *VideoDownloader) DownloadVideoUsingPkg(link string) string {
 		d.logger.LogFileWithStdout("Failed to download the video "+link, logger.Error)
 		return ""
 	}
+	if !hasDownloadedVideo(tempDirID) {
+		d.logger.LogFileWithStdout("Download produced no usable input.webm or input.mp4 for "+link, logger.Error)
+		return ""
+	}
 
 	d.logger.LogFileWithStdout("Copying downloaded video to cache...", logger.Info)
-	os.MkdirAll(".cache/gozart", 0755)
-	tempDirID := d.tempDir + "/" + videoID
-	exec.Command("cp", "-r", tempDirID, homeDir+".cache/gozart/").Run()
+	if err := copyVideoDirectory(tempDirID, cacheDir); err != nil {
+		d.logger.LogFileWithStdout("Failed to cache downloaded video: "+err.Error(), logger.Warn)
+	}
 
 	d.logger.LogFileWithStdout("Completed Downloading "+link, logger.Info)
 	return videoID
+}
+
+func hasDownloadedVideo(dir string) bool {
+	for _, name := range []string{"input.webm", "input.mp4"} {
+		info, err := os.Stat(filepath.Join(dir, name))
+		if err == nil && info.Mode().IsRegular() && info.Size() > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func copyVideoDirectory(src, dst string) error {
+	if err := os.MkdirAll(dst, 0755); err != nil {
+		return err
+	}
+	// Copy contents into the destination, including when it already exists.
+	return exec.Command("cp", "-r", filepath.Clean(src)+string(os.PathSeparator)+".", dst).Run()
 }

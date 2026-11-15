@@ -1,0 +1,84 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div style="max-width: 680px; margin: 0 auto;">
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.025em;">Launch Autonomous Pipeline</h1>
+    <p style="color: var(--text-muted); margin-top: 0.25rem;">Enter a video idea to unleash autonomous research, scriptwriting, voiceover, Remotion visuals, and SEO.</p>
+  </div>
+
+  <div class="form-card" style="margin: 0; max-width: 100%;">
+    <form action="/jobs/create" method="POST">
+      <div class="form-group">
+        <label class="form-label" for="topic">Video Topic / Premise</label>
+        <input type="text" id="topic" name="topic" class="form-input" placeholder="e.g. Why NASA stopped sending humans to the moon" required autofocus>
+        <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; display: block;">The AI research agent will explore YouTube competition, find viral outliers, and mine audience comments on this topic.</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="country_code">Target Audience / Country</label>
+          <select id="country_code" name="country_code" class="form-select">
+            <option value="US" selected>United States (US)</option>
+            <option value="GB">United Kingdom (GB)</option>
+            <option value="CA">Canada (CA)</option>
+            <option value="AU">Australia (AU)</option>
+            <option value="IN">India (IN)</option>
+            <option value="DE">Germany (DE)</option>
+            <option value="FR">France (FR)</option>
+            <option value="JP">Japan (JP)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="format">Target Format</label>
+          <select id="format" name="format" class="form-select">
+            <option value="shorts_9_16" selected>Shorts (9:16 Vertical, 1080x1920)</option>
+            <option value="longform_16_9">Longform (16:9 Landscape, 1920x1080)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="tone">Script Tone & Pacing</label>
+        <select id="tone" name="tone" class="form-select">
+          <option value="sensational" selected>Sensational & Fast-Paced (High Retention)</option>
+          <option value="educational">Educational & Analytical (Documentary)</option>
+          <option value="mystery">Dark Mystery & Investigation</option>
+          <option value="storytelling">Narrative Storytelling</option>
+          <option value="humorous">Humorous & Irreverent</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between;">
+          <label class="form-label" for="duration">Target Duration: <span id="dur-val" style="color: #60a5fa; font-weight: 700;">50s</span></label>
+        </div>
+        <input type="range" id="duration" name="target_duration_sec" min="20" max="180" value="50" class="form-input" style="padding: 0; cursor: pointer;" oninput="document.getElementById('dur-val').innerText = this.value + 's'">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="model_tier">Model Tier</label>
+        <select id="model_tier" name="model_tier" class="form-select">
+          <option value="local" selected>Local Ollama (qwen2.5 / llama3)</option>
+          <option value="cloud">Cloud Fallback (GPT-4o / Claude / Gemini)</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-top: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+        <input type="checkbox" id="auto_upload" name="auto_upload" value="true" style="width: 1.1rem; height: 1.1rem; cursor: pointer;">
+        <label for="auto_upload" style="font-size: 0.9rem; cursor: pointer; color: var(--text-main);">
+          Auto-publish to YouTube once compositing and mastering finish
+        </label>
+      </div>
+
+      <div style="margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Launch Autonomous Pipeline
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{{end}}
