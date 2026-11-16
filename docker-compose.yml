@@ -3,14 +3,18 @@ services:
     build: .
     image: gozart:latest
     container_name: gozart
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Ollama running on the host machine
+      - GOZART_OLLAMA_URL=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
-      - ./config.json:/workspace/config.json:ro
-      - ./client_secrets.json:/workspace/client_secrets.json:ro
-      - ./links.txt:/workspace/links.txt:ro
-      - ./sample.mp4:/workspace/sample.mp4:ro
-      - ./output:/workspace/output
-      - ./files:/workspace/files
-      - ./token.json:/workspace/token.json
-    working_dir: /workspace
-    stdin_open: true
-    tty: true
+      - ./config.json:/app/config.json:ro
+      - ./client_secrets.json:/app/client_secrets.json:ro
+      - ./token.json:/app/token.json
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./workspace:/app/workspace

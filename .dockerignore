@@ -1,23 +1,24 @@
-# Binaries
+# Binaries (rebuilt inside the image)
 gozart
 
-# Directories
+# Runtime data
 files/
 output/
-
-# Logs
+workspace/
+data/
+.cache/
+gozart.db*
 *.log
+*.mp4
+*.pptx
+*.excalidraw
 
-# Secrets and config (should be mounted at runtime)
+# Secrets and config (mounted at runtime)
 config.json
 client_secrets.json
 token.json
-links.txt
-sample.mp4
+links.txt*
 
 # Git
 .git
 .gitignore
-
-# Documentation
-README.md

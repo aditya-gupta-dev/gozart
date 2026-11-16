@@ -5,3 +5,5 @@ gozart
 *.mp4 
 files/
 output/
+data/
+gozart.db*

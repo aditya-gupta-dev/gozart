@@ -193,6 +193,14 @@ func New(l *logger.Logger) *ConfigLoader {
 		data.FinalVideoDuration = "30"
 	}
 
+	// Environment overrides (used by the Docker image)
+	if v := os.Getenv("GOZART_DB_PATH"); v != "" {
+		data.Storage.DBPath = v
+	}
+	if v := os.Getenv("GOZART_OLLAMA_URL"); v != "" {
+		data.AI.OllamaBaseURL = v
+	}
+
 	// Ensure required directories exist
 	if err := os.MkdirAll(data.Storage.OutputDir, 0755); err != nil {
 		l.LogFileWithStdout("Failed to create output directory: "+err.Error(), logger.Warn)
