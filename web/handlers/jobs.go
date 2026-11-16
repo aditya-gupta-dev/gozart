@@ -54,6 +54,16 @@ func (h *JobsHandler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.FormValue("preset") == "demo" {
+		jobID := fmt.Sprintf("demo-%d", time.Now().Unix())
+		go func() {
+			_ = h.Orchestrator.RunDemo(context.Background(), jobID)
+		}()
+		time.Sleep(100 * time.Millisecond)
+		http.Redirect(w, r, "/jobs/"+jobID, http.StatusSeeOther)
+		return
+	}
+
 	topic := r.FormValue("topic")
 	if topic == "" {
 		http.Error(w, "topic is required", http.StatusBadRequest)

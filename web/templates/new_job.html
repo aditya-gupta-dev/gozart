@@ -12,6 +12,13 @@
   <form action="/jobs/create" method="POST">
     <h2 class="section-title" id="idea-h">Idea</h2>
     <div class="group" role="group" aria-labelledby="idea-h">
+      <div class="row">
+        <label class="row-label" for="preset">Start From</label>
+        <select id="preset" name="preset" class="field">
+          <option value="" selected>My own idea</option>
+          <option value="demo">Demo: 5 Unspoken Rules That Reveal Your True Character</option>
+        </select>
+      </div>
       <div class="row stack">
         <label for="topic">Topic</label>
         <input type="text" id="topic" name="topic" class="field" placeholder="Why NASA stopped going to the Moon" required autofocus autocomplete="off">
@@ -89,4 +96,24 @@
     </div>
   </form>
 </div>
+<script>
+  (function () {
+    var preset = document.getElementById('preset');
+    var topic = document.getElementById('topic');
+    var custom = '';
+    preset.addEventListener('change', function () {
+      if (preset.value === 'demo') {
+        custom = topic.value;
+        topic.value = '5 Unspoken Rules That Reveal Your True Character';
+        topic.readOnly = true;
+        document.getElementById('fmt-long').checked = true;
+      } else {
+        topic.value = custom;
+        topic.readOnly = false;
+        document.getElementById('fmt-short').checked = true;
+        topic.focus();
+      }
+    });
+  })();
+</script>
 {{end}}

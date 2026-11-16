@@ -40,6 +40,10 @@ var webCmd = &cobra.Command{
 		}
 		defer db.Close()
 
+		if err := db.SeedDemo(storage.DemoDir()); err != nil {
+			l.LogFileWithStdout(fmt.Sprintf("Demo seed skipped: %v", err), logger.Warn)
+		}
+
 		server := handlers.NewServer(cfg, db)
 		if err := server.Start(); err != nil {
 			l.LogFileWithStdout(fmt.Sprintf("Server stopped: %v", err), logger.Fatal)
