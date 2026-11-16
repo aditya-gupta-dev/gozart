@@ -22,3 +22,8 @@ links.txt*
 # Git
 .git
 .gitignore
+
+# Demo job assets are needed in the image
+!demo/
+!demo/demo.mp4
+!demo/demo_job.json

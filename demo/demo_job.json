@@ -1,0 +1,135 @@
+{
+  "job": {
+    "id": "demo-unspoken-rules",
+    "topic": "5 Unspoken Rules That Reveal Your True Character",
+    "country_code": "US",
+    "format": "longform_16_9",
+    "status": "COMPLETED",
+    "current_step": "COMPOSITED",
+    "progress_pct": 95
+  },
+  "script": {
+    "title_idea": "5 Unspoken Rules That Reveal Your True Character",
+    "total_estimated_duration": 628,
+    "hook": {
+      "formula": "curiosity_gap",
+      "voiceover": "Nobody hands you a rulebook for character. But everyone you meet is quietly grading you on five rules you were never taught. Break them, and people notice — even if they never say a word.",
+      "visual_direction": "Slow push-in on a crowded street, faces blur while one figure stays sharp. Bold text: 'THE RULES NOBODY TELLS YOU'.",
+      "duration_sec": 20
+    },
+    "scenes": [
+      {
+        "scene_id": 1,
+        "type": "intro",
+        "voiceover": "Character isn't what you say on your best day. It's what you do when nobody is keeping score. Psychologists call these 'micro-signals' — tiny behaviours that tell people who you really are long before you tell them yourself.",
+        "visual_description": "Montage of small everyday moments: holding a door, checking a phone mid-conversation, returning a shopping cart.",
+        "animation_snippet_type": "kinetic_text",
+        "sfx_cue": "soft_whoosh",
+        "duration_sec": 40
+      },
+      {
+        "scene_id": 2,
+        "type": "point",
+        "voiceover": "Rule one: how you treat people who can do nothing for you. The waiter, the cleaner, the new intern. Kindness that depends on someone's status isn't kindness — it's strategy, and people can feel the difference.",
+        "visual_description": "Split screen: a customer being polite to a manager, then dismissive to a waiter. Number '1' slams onto the screen.",
+        "animation_snippet_type": "number_reveal",
+        "sfx_cue": "impact_hit",
+        "duration_sec": 110
+      },
+      {
+        "scene_id": 3,
+        "type": "point",
+        "voiceover": "Rule two: you keep small promises. 'I'll text you back.' 'I'll send that tomorrow.' Nobody remembers the big promises you keep — but everyone remembers the small ones you break.",
+        "visual_description": "A phone screen filling with unanswered 'I'll get back to you' messages. Counter ticks up.",
+        "animation_snippet_type": "number_reveal",
+        "sfx_cue": "notification_ping",
+        "duration_sec": 110
+      },
+      {
+        "scene_id": 4,
+        "type": "point",
+        "voiceover": "Rule three: you protect people who aren't in the room. When the conversation turns to gossip, someone with real character either changes the subject or defends the absent person. Whoever gossips with you will gossip about you.",
+        "visual_description": "Group of friends whispering; one person shakes their head and steps back. Text: 'WHO TALKS TO YOU, TALKS ABOUT YOU'.",
+        "animation_snippet_type": "quote_card",
+        "sfx_cue": "low_drone",
+        "duration_sec": 110
+      },
+      {
+        "scene_id": 5,
+        "type": "point",
+        "voiceover": "Rule four: you can lose without making it someone else's fault. Losing a game, an argument, a job. The way you handle being wrong says more about you than any win ever will.",
+        "visual_description": "Chess board — a king tips over. Player calmly offers a handshake.",
+        "animation_snippet_type": "number_reveal",
+        "sfx_cue": "piano_note",
+        "duration_sec": 110
+      },
+      {
+        "scene_id": 6,
+        "type": "point",
+        "voiceover": "Rule five: you are the same person online and offline. If your profile is generous and your private messages are cruel, people eventually see both. Consistency is the quietest form of integrity.",
+        "visual_description": "A face reflected in a phone screen, then the real face — slowly the two images align.",
+        "animation_snippet_type": "morph_transition",
+        "sfx_cue": "rising_swell",
+        "duration_sec": 110
+      }
+    ],
+    "cta": {
+      "voiceover": "Which of these five rules do you think most people break? Tell me in the comments, and subscribe — next week we're covering the habits that quietly make people trust you.",
+      "visual_description": "Five rule icons line up on screen; subscribe button pulses in the corner.",
+      "duration_sec": 18
+    }
+  },
+  "sentiment": {
+    "audience_sentiment": {
+      "positive_triggers": [
+        "Relatable real-life examples (waiters, group chats, office gossip)",
+        "Short, numbered structure that is easy to follow",
+        "Calm narration without lecturing"
+      ],
+      "negative_friction": [
+        "Generic self-help advice with no examples",
+        "Long intros before the first point",
+        "Clickbait titles that don't deliver all the rules"
+      ],
+      "unanswered_questions": [
+        "How do you fix your reputation after breaking one of these rules?",
+        "Are these rules the same across different cultures?",
+        "How do you deal with friends who constantly gossip?"
+      ],
+      "emotional_tone": "Reflective and self-improving, slightly nostalgic",
+      "target_audience_slang": ["main character energy", "red flag", "lowkey", "rent free"],
+      "debate_topics": [
+        "Is being polite to everyone fake or genuine?",
+        "Does online behaviour really reflect real character?"
+      ]
+    }
+  },
+  "seo": {
+    "title_candidates": [
+      "5 Unspoken Rules That Reveal Your True Character",
+      "People Judge You By These 5 Hidden Rules",
+      "The 5 Rules Nobody Tells You About Character",
+      "If You Do These 5 Things, You Have Real Integrity"
+    ],
+    "chosen_title": "5 Unspoken Rules That Reveal Your True Character",
+    "description": "Nobody teaches these rules — but everyone notices when you break them.\n\n00:00 The rules nobody tells you\n00:20 What character really is\n01:00 Rule 1: How you treat people who can't help you\n02:50 Rule 2: Keeping small promises\n04:40 Rule 3: Protecting people who aren't in the room\n06:30 Rule 4: Losing without blaming\n08:20 Rule 5: Same person online and offline\n10:10 Which rule do most people break?\n\n#psychology #selfimprovement #character",
+    "tags": ["character", "psychology", "self improvement", "integrity", "unspoken rules", "personal growth", "life lessons", "social skills", "mindset", "human behavior"]
+  },
+  "logs": [
+    {"level": "INFO", "message": "Demo job: sample data showing the full pipeline in the UI"},
+    {"level": "INFO", "message": "Job started for topic: 5 Unspoken Rules That Reveal Your True Character"},
+    {"level": "INFO", "message": "Researching top YouTube videos (country: US)"},
+    {"level": "INFO", "message": "Found 12 high-performing videos, avg outlier score 4.3x"},
+    {"level": "INFO", "message": "Fetched 300 top comments from 6 videos"},
+    {"level": "INFO", "message": "Sentiment analysis complete: 3 unanswered questions, 3 friction points"},
+    {"level": "INFO", "message": "Agent model qwen2.5:32b writing script (curiosity_gap hook)"},
+    {"level": "INFO", "message": "Script ready: 6 scenes, 628s estimated"},
+    {"level": "INFO", "message": "Kokoro TTS: voiceover generated (voice af_bella)"},
+    {"level": "INFO", "message": "DeepFilterNet v3: noise and reverb removed"},
+    {"level": "INFO", "message": "Whisper: 1,412 word timestamps aligned"},
+    {"level": "INFO", "message": "Thumbnail generated, post-processing applied"},
+    {"level": "INFO", "message": "SEO metadata generated: 4 title candidates, 10 tags"},
+    {"level": "INFO", "message": "Compositing final video with subtitles and background music"},
+    {"level": "INFO", "message": "Video ready: output/demo.mp4 (854x480)"}
+  ]
+}

@@ -20,6 +20,8 @@ WORKDIR /app
 
 COPY --from=builder /out/gozart /usr/local/bin/gozart
 COPY --chown=gozart:gozart assets ./assets
+# Sample finished job (480p video, thumbnail, script) shown on the dashboard
+COPY --chown=gozart:gozart demo ./demo
 
 # Free tier has no persistent disk: data resets on every deploy/restart
 ENV GOZART_DB_PATH=/app/data/gozart.db \
