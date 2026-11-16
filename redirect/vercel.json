@@ -1,0 +1,5 @@
+{
+  "redirects": [
+    { "source": "/(.*)", "destination": "https://gozart.onrender.com/$1", "permanent": false }
+  ]
+}
